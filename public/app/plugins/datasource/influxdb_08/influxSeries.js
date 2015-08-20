@@ -21,6 +21,10 @@ function (_) {
     _.each(self.seriesList, function(series) {
       var seriesName;
       var timeCol = series.columns.indexOf('time');
+      // SLACK_CHANGE - BEGIN
+      var recordedTimeCol = series.columns.indexOf('client_time');
+      var postedTimeCol = series.columns.indexOf('posted_time');
+      // SLACK_CHANGE - END
       var valueCol = 1;
       var groupByCol = -1;
 
@@ -30,7 +34,12 @@ function (_) {
 
       // find value column
       _.each(series.columns, function(column, index) {
-        if (column !== 'time' && column !== 'sequence_number' && column !== self.groupByField) {
+        if (column !== 'time' &&
+          /* SLACK_CHANGE - BEGIN */
+          column !== 'client_time' &&
+          column !== 'posted_time' &&
+          /* SLACK_CHANGE - END */
+          column !== 'sequence_number' && column !== self.groupByField) {
           valueCol = index;
         }
       });
@@ -51,6 +60,11 @@ function (_) {
         for (i = 0; i < groupPoints.length; i++) {
           var metricValue = isNaN(groupPoints[i][valueCol]) ? null : groupPoints[i][valueCol];
           datapoints[i] = [metricValue, groupPoints[i][timeCol]];
+          // SLACK_CHANGE - BEGIN
+          if ((recordedTimeCol !== -1) && (postedTimeCol !== -1)) {
+            datapoints[i][1] -= (groupPoints[i][postedTimeCol] - groupPoints[i][recordedTimeCol]);
+          }
+          // SLACK_CHANGE - END
         }
 
         seriesName = series.name + '.' + key;
@@ -73,11 +87,19 @@ function (_) {
     _.each(this.seriesList, function (series) {
       var titleCol = null;
       var timeCol = null;
+      /* SLACK_CHANGE - BEGIN */
+      var recordedTimeCol = null;
+      var postedTimeCol = null;
+      /* SLACK_CHANGE - END */
       var tagsCol = null;
       var textCol = null;
 
       _.each(series.columns, function(column, index) {
         if (column === 'time') { timeCol = index; return; }
+        // SLACK_CHANGE - BEGIN
+        if (column === 'client_time') { recordedTimeCol = index; return; }
+        if (column === 'posted_time') { postedTimeCol = index; return; }
+        // SLACK_CHANGE - END
         if (column === 'sequence_number') { return; }
         if (!titleCol) { titleCol = index; }
         if (column === self.annotation.titleColumn) { titleCol = index; return; }
@@ -93,6 +115,12 @@ function (_) {
           tags: point[tagsCol],
           text: point[textCol]
         };
+
+        // SLACK_CHANGE - BEGIN
+        if ((recordedTimeCol !== null) && (postedTimeCol !== null)) {
+          data.time -= (point[postedTimeCol] - point[recordedTimeCol]);
+        }
+        // SLACK_CHANGE - END
 
         if (tagsCol) {
           data.tags = point[tagsCol];
