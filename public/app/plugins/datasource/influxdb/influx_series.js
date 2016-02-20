@@ -33,9 +33,11 @@ function (_, TableModel) {
       // SLACK_CHANGE - END
 
       for (j = 1; j < columns; j++) {
+        // SLACK_CHANGE - BEGIN
         if (j === recordedTimeCol || j === postedTimeCol) {
           continue;
         }
+        // SLACK_CHANGE - END
         var seriesName = series.name;
         var columnName = series.columns[j];
         if (columnName !== 'value') {
