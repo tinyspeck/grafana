@@ -27,8 +27,17 @@ function (_, TableModel) {
       var tags = _.map(series.tags, function(value, key) {
         return key + ': ' + value;
       });
+      // SLACK_CHANGE - BEGIN
+      var recordedTimeCol = series.columns.indexOf('client_time');
+      var postedTimeCol = series.columns.indexOf('posted_time');
+      // SLACK_CHANGE - END
 
       for (j = 1; j < columns; j++) {
+        // SLACK_CHANGE - BEGIN
+        if (j === recordedTimeCol || j === postedTimeCol) {
+          continue;
+        }
+        // SLACK_CHANGE - END
         var seriesName = series.name;
         var columnName = series.columns[j];
         if (columnName !== 'value') {
@@ -45,6 +54,11 @@ function (_, TableModel) {
         if (series.values) {
           for (i = 0; i < series.values.length; i++) {
             datapoints[i] = [series.values[i][j], series.values[i][0]];
+            // SLACK_CHANGE - BEGIN
+            if (recordedTimeCol !== -1 && postedTimeCol !== -1) {
+              datapoints[i][1] -= (series.values[i][postedTimeCol] - series.values[i][recordedTimeCol]);
+            }
+            // SLACK_CHANGE - END
           }
         }
 
@@ -81,12 +95,20 @@ function (_, TableModel) {
     _.each(this.series, function (series) {
       var titleCol = null;
       var timeCol = null;
+      // SLACK_CHANGE - BEGIN
+      var recordedTimeCol = null;
+      var postedTimeCol = null;
+      // SLACK_CHANGE - END
       var tagsCol = null;
       var textCol = null;
 
       _.each(series.columns, function(column, index) {
         if (column === 'time') { timeCol = index; return; }
         if (column === 'sequence_number') { return; }
+        // SLACK_CHANGE - BEGIN
+        if (column === 'client_time') { recordedTimeCol = index; return; }
+        if (column === 'posted_time') { postedTimeCol = index; return; }
+        // SLACK_CHANGE - END
         if (!titleCol) { titleCol = index; }
         if (column === self.annotation.titleColumn) { titleCol = index; return; }
         if (column === self.annotation.tagsColumn) { tagsCol = index; return; }
@@ -101,6 +123,12 @@ function (_, TableModel) {
           tags: value[tagsCol],
           text: value[textCol]
         };
+
+        // SLACK_CHANGE - BEGIN
+        if (recordedTimeCol !== null && postedTimeCol !== null) {
+          data.time -= (value[postedTimeCol] - value[recordedTimeCol]);
+        }
+        // SLACK_CHANGE - END
 
         list.push(data);
       });
