@@ -1,16 +1,22 @@
-<navbar icon="icon-gf icon-gf-users" title="Organization" title-url="org">
+<navbar icon="icon-gf icon-gf-bulk_action" title="Hosts" title-url="hosts">
 </navbar>
 
-<div class="page-container">
-       <div class="page-header">
+<div class="page-container" ng-controller="HostsCtrl">
+        <div class="page-header">
             <h1>Hosts</h1>
-       </div>
-        <div class="submenu-controls">
-            <div class="tight-form borderless">
-                <ul class="tight-form-list">
-                    <li>Region</li>
-                    <li>Cluster</li>
-                </ul>
-            </div>
         </div>
+        <h3 class="page-heading">Metrics</h3>
+        <form name="hostsForm" class="gf-form-group">
+            <div class="gf-form-inline">
+                <div class="gf-form gf-size-max-xxxl">
+                    <span class="gf-form-label gf-size-s">Host(s) Regex</span>
+                    <input class="gf-form-input" type="text" required ng-model='regex'>
+                </div>
+                <div class="gf-form">
+                    <button type="submit" class="btn gf-form-btn btn-success" ng-click="update()">Generate Dashboard</button>
+                </div>
+            </div>
+        </form>
+        <h3 class="page-heading">Explore</h3>
+        <span>Coming soon!</span>
 </div>
