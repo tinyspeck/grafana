@@ -19,7 +19,7 @@ function (angular) {
     $scope.update = function() {
      // if (!$scope.hostsForm.$valid) { return; }
       var regex = $scope.regex;
-      location.href = "/dashboard/script/scripted.js?regex=" + regex;
+      location.href = "/dashboard/script/scripted.js?regex=" + encodeURIComponent(regex);
     };
 
     $scope.init();
