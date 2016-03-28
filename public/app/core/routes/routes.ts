@@ -66,7 +66,7 @@ function setupAngularRoutes($routeProvider, $locationProvider) {
     resolve: loadOrgBundle,
   })
   .when('/hosts', {
-    templateUrl: 'public/app/features/datasources/partials/hosts.html',
+    templateUrl: 'public/app/features/hosts/partials/hosts.html',
     controller : 'HostsCtrl',
     resolve: loadHostsBundle,
   })
