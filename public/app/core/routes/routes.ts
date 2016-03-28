@@ -13,6 +13,7 @@ function setupAngularRoutes($routeProvider, $locationProvider) {
   var loadOrgBundle = new BundleLoader('app/features/org/all');
   var loadAppsBundle = new BundleLoader('app/features/apps/all');
   var loadAdminBundle = new BundleLoader('app/features/admin/admin');
+  var loadHostsBundle = new BundleLoader('app/features/hosts/all');
 
   $routeProvider
   .when('/', {
@@ -63,6 +64,11 @@ function setupAngularRoutes($routeProvider, $locationProvider) {
     templateUrl: 'public/app/features/datasources/partials/edit.html',
     controller : 'DataSourceEditCtrl',
     resolve: loadOrgBundle,
+  })
+  .when('/hosts', {
+    templateUrl: 'public/app/features/datasources/partials/hosts.html',
+    controller : 'HostsCtrl',
+    resolve: loadHostsBundle,
   })
   .when('/org', {
     templateUrl: 'public/app/features/org/partials/orgDetails.html',
