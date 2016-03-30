@@ -106,6 +106,8 @@ return function(callback) {
   expand_metrics(prefix + '.*').then(function(req) {
     var results = _.reject(req['results'], function(metric){ return _.contains(metric, 'statsite') && _.contains(['www', 'job_queue'], metric.split('.')[2])});
 
+    results = _.uniq(_.map(results, function(metric) { return prefix + "." + metric.split('.')[4] }))
+
     var promises = _.map(results, function(row) { return find_all_metrics(row) });
     $.when.apply($, promises).done(function() {
       for (var index = 0; index < results.length; index++) {
