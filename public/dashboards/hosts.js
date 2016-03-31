@@ -48,6 +48,10 @@ function find_metrics(query){
   return graphite_request('/metrics/find', ['query=' + query]);
 };
 
+function expand_metrics(query){
+  return graphite_request('/metrics/expand', ['query=' + query]);
+};
+
 function find_all_metrics(query){
   var deferred = $.Deferred();
   find_metrics(query).then(function(paths) {
@@ -99,13 +103,17 @@ return function(callback) {
   dashboard.title = host;
   dashboard.editable = true;
 
-  find_metrics(prefix +'.*').then(function(metrics) {
-    var promises = _.map(metrics, function(m) { return find_all_metrics(m['id']) });
+  expand_metrics(prefix + '.*').then(function(req) {
+    var results = _.reject(req['results'], function(metric){ return _.contains(metric, 'statsite') && _.contains(['www', 'job_queue'], metric.split('.')[2])});
+
+    results = _.uniq(_.map(results, function(metric) { return prefix + "." + metric.split('.')[4] }))
+
+    var promises = _.map(results, function(row) { return find_all_metrics(row) });
     $.when.apply($, promises).done(function() {
-      for (var index = 0; index < metrics.length; index++) {
-        var metric = metrics[index];
+      for (var index = 0; index < results.length; index++) {
+        var metric = results[index];
         dashboard.rows.push({
-          title: metric["text"],
+          title: metric.split('.').slice(-1)[0],
           panels: _.map(arguments[index], function(x) { return default_panel(x['text'], x['id'], host) }),
           collapse: true,
         });
