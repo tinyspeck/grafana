@@ -105,7 +105,7 @@ return function(callback) {
   dashboard.editable = true;
 
   expand_metrics(prefix + '.*').then(function(req) {
-    var results = _.reject(req['results'], function(metric){ return _.contains(metric, 'statsite') && _.contains(['www', 'job_queue'], metric.split('.')[2])});
+    var results = _.reject(req['results'], function(metric){ return _.contains(metric, 'statsite') && _.contains(['www', 'job_queue', 'dev'], metric.split('.')[2])});
 
     results = _.uniq(_.map(results, function(metric) { return prefix + "." + metric.split('.')[4] }))
 
