@@ -82,6 +82,7 @@ function default_panel(title, prefix, host){
       "target": "aliasByNode(" + prefix + ", 3)"
     }],
     legend: {show: false},
+    tooltip: {shared: false},
   };
 };
 
