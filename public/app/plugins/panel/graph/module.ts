@@ -103,7 +103,9 @@ class GraphCtrl extends MetricsPanelCtrl {
     _.defaults(this.panel.grid, panelDefaults.grid);
     _.defaults(this.panel.legend, panelDefaults.legend);
 
-    this.colors = $scope.$root.colors;
+    if ($scope.$root){
+      this.colors = $scope.$root.colors;
+    }
   }
 
   initEditMode() {

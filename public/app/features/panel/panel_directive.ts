@@ -18,7 +18,7 @@ var panelTemplate = `
         <i class="fa fa-spinner fa-spin"></i>
       </span>
 
-      <div class="panel-title-container drag-handle" panel-menu></div>
+      <div class="panel-title-container drag-handle" ng-show="!ctrl.dashboard.meta.adHocDashboard" panel-menu></div>
     </div>
 
     <div class="panel-content">
@@ -40,7 +40,7 @@ var panelTemplate = `
           </div>
         </div>
 
-        <button class="gf-box-header-close-btn" ng-click="ctrl.exitFullscreen();">
+        <button class="gf-box-header-close-btn" ng-click="ctrl.exitFullscreen();" ng-show="!ctrl.dashboard.meta.adHocDashboard">
           Back to dashboard
         </button>
       </div>
