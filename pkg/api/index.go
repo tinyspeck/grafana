@@ -65,6 +65,12 @@ func setIndexViewData(c *middleware.Context) (*dtos.IndexViewData, error) {
 	    Url:  setting.AppSubUrl + "/hosts",
 	})
 
+	data.MainNavLinks = append(data.MainNavLinks, &dtos.NavLink{
+	    Text: "Metrics",
+	    Icon: "icon-gf icon-gf-search",
+	    Url: setting.AppSubUrl + "/dashboard/metrics",
+	})
+
 	// data.MainNavLinks = append(data.MainNavLinks, &dtos.NavLink{Text: "Playlists", Icon: "fa fa-fw fa-list", Url: setting.AppSubUrl + "/playlists"})
 	// data.MainNavLinks = append(data.MainNavLinks, &dtos.NavLink{Text: "Snapshots", Icon: "fa-fw icon-gf icon-gf-snapshot", Url: setting.AppSubUrl + "/dashboard/snapshots"})
 

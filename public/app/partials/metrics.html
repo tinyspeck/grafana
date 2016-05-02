@@ -1,5 +1,9 @@
 <div class="editor-row">
 
+	<div>
+	    <span><b>Graphite Namespace:</b><br>collector.region.cluster.hostname.your_metric_here</span>
+	</div>
+
 	<div class="tight-form-container">
 		<div ng-repeat="target in ctrl.panel.targets" ng-class="{'tight-form-disabled': target.hide}">
 			<rebuild-on-change property="ctrl.panel.datasource || target.datasource" show-null="true">

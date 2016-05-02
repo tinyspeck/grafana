@@ -43,4 +43,14 @@ function (coreModule) {
     }, $scope);
   });
 
+  coreModule.default.controller('MetricsCtrl', function($scope) {
+    $scope.initDashboard({
+      meta: { canStar: false, canShare: false, adHocDashboard: true},
+      dashboard: {
+        title: " ",
+        rows: [{ height: '250px', panels:[] }]
+      },
+    }, $scope);
+  });
+
 });

@@ -45,6 +45,12 @@ function setupAngularRoutes($routeProvider, $locationProvider) {
     reloadOnSearch: false,
     pageClass: 'page-dashboard',
   })
+  .when('/dashboard/metrics', {
+    templateUrl: 'public/app/partials/dashboard.html',
+    controller : 'MetricsCtrl',
+    reloadOnSearch: true,
+    pageClass: 'page-dashboard',
+  })
   .when('/import/dashboard', {
     templateUrl: 'public/app/features/dashboard/partials/import.html',
     controller : 'DashboardImportCtrl',
