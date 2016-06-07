@@ -12,6 +12,8 @@ export class DashNavCtrl {
     $scope.init = function() {
       $scope.onAppEvent('save-dashboard', $scope.saveDashboard);
       $scope.onAppEvent('delete-dashboard', $scope.deleteDashboard);
+      $scope.onAppEvent('export-dashboard', $scope.snapshot);
+      $scope.onAppEvent('quick-snapshot', $scope.quickSnapshot);
 
       $scope.showSettingsMenu = $scope.dashboardMeta.canEdit || $scope.contextSrv.isEditor;
 
@@ -50,6 +52,10 @@ export class DashNavCtrl {
         src: 'public/app/features/dashboard/partials/shareModal.html',
         scope: modalScope
       });
+    };
+
+    $scope.quickSnapshot = function() {
+      $scope.shareDashboard(1);
     };
 
     $scope.openSearch = function() {
@@ -102,8 +108,9 @@ export class DashNavCtrl {
         err.isHandled = true;
 
         $scope.appEvent('confirm-modal', {
-          title: 'Someone else has updated this dashboard!',
-          text: "Would you still like to save this dashboard?",
+          title: 'Conflict',
+          text: 'Someone else has updated this dashboard.',
+          text2: 'Would you still like to save this dashboard?',
           yesText: "Save & Overwrite",
           icon: "fa-warning",
           onConfirm: function() {
@@ -116,8 +123,9 @@ export class DashNavCtrl {
         err.isHandled = true;
 
         $scope.appEvent('confirm-modal', {
-          title: 'Another dashboard with the same name exists',
-          text: "Would you still like to save this dashboard?",
+          title: 'Conflict',
+          text: 'Dashboard with the same name exists.',
+          text2: 'Would you still like to save this dashboard?',
           yesText: "Save & Overwrite",
           icon: "fa-warning",
           onConfirm: function() {
@@ -129,7 +137,9 @@ export class DashNavCtrl {
 
     $scope.deleteDashboard = function() {
       $scope.appEvent('confirm-modal', {
-        title: 'Do you want to delete dashboard ' + $scope.dashboard.title + '?',
+        title: 'Delete',
+        text: 'Do you want to delete this dashboard?',
+        text2: $scope.dashboard.title,
         icon: 'fa-trash',
         yesText: 'Delete',
         onConfirm: function() {
@@ -154,6 +164,7 @@ export class DashNavCtrl {
       $scope.appEvent('show-modal', {
         src: 'public/app/features/dashboard/partials/saveDashboardAs.html',
         scope: newScope,
+        modalClass: 'modal--narrow'
       });
     };
 
@@ -161,7 +172,7 @@ export class DashNavCtrl {
       var clone = $scope.dashboard.getSaveModelClone();
       var blob = new Blob([angular.toJson(clone, true)], { type: "application/json;charset=utf-8" });
       var wnd: any = window;
-      wnd.saveAs(blob, $scope.dashboard.title + '-' + new Date().getTime());
+      wnd.saveAs(blob, $scope.dashboard.title + '-' + new Date().getTime() + '.json');
     };
 
     $scope.snapshot = function() {

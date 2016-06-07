@@ -9,7 +9,7 @@ function (angular, $, _, moment) {
 
   var module = angular.module('grafana.services');
 
-  module.factory('dashboardSrv', function()  {
+  module.factory('dashboardSrv', function(contextSrv)  {
 
     function DashboardModel (data, meta) {
       if (!data) {
@@ -25,7 +25,7 @@ function (angular, $, _, moment) {
       this.originalTitle = this.title;
       this.tags = data.tags || [];
       this.style = data.style || "dark";
-      this.timezone = data.timezone || 'browser';
+      this.timezone = data.timezone || '';
       this.editable = data.editable !== false;
       this.hideControls = data.hideControls || false;
       this.sharedCrosshair = data.sharedCrosshair || false;
@@ -140,7 +140,11 @@ function (angular, $, _, moment) {
     };
 
     p.isSubmenuFeaturesEnabled = function() {
-      return this.templating.list.length > 0 || this.annotations.list.length > 0 || this.links.length > 0;
+      var visableTemplates = _.filter(this.templating.list, function(template) {
+        return template.hideVariable === undefined || template.hideVariable === false;
+      });
+
+      return visableTemplates.length > 0 || this.annotations.list.length > 0 || this.links.length > 0;
     };
 
     p.getPanelInfoById = function(panelId) {
@@ -180,6 +184,7 @@ function (angular, $, _, moment) {
     p.formatDate = function(date, format) {
       date = moment.isMoment(date) ? date : moment(date);
       format = format || 'YYYY-MM-DD HH:mm:ss';
+      this.timezone = this.getTimezone();
 
       return this.timezone === 'browser' ?
         moment(date).format(format) :
@@ -204,11 +209,19 @@ function (angular, $, _, moment) {
       });
     };
 
+    p.isTimezoneUtc = function() {
+      return this.getTimezone() === 'utc';
+    };
+
+    p.getTimezone = function() {
+      return this.timezone ? this.timezone : contextSrv.user.timezone;
+    };
+
     p._updateSchema = function(old) {
       var i, j, k;
       var oldVersion = this.schemaVersion;
       var panelUpgrades = [];
-      this.schemaVersion = 10;
+      this.schemaVersion = 12;
 
       if (oldVersion === this.schemaVersion) {
         return;
@@ -394,6 +407,66 @@ function (angular, $, _, moment) {
               style.thresholds = k;
             }
           });
+        });
+      }
+
+      if (oldVersion < 12) {
+        // update template variables
+        _.each(this.templating.list, function(templateVariable) {
+          if (templateVariable.refresh) { templateVariable.refresh = 1; }
+          if (!templateVariable.refresh) { templateVariable.refresh = 0; }
+          if (templateVariable.hideVariable) {
+            templateVariable.hide = 2;
+          } else if (templateVariable.hideLabel) {
+            templateVariable.hide = 1;
+          } else {
+            templateVariable.hide = 0;
+          }
+        });
+      }
+
+      if (oldVersion < 12) {
+        // update graph yaxes changes
+        panelUpgrades.push(function(panel) {
+          if (panel.type !== 'graph') { return; }
+          if (!panel.grid) { return; }
+
+          if (!panel.yaxes) {
+            panel.yaxes = [
+              {
+                show: panel['y-axis'],
+                min: panel.grid.leftMin,
+                max: panel.grid.leftMax,
+                logBase: panel.grid.leftLogBase,
+                format: panel.y_formats[0],
+                label: panel.leftYAxisLabel,
+              },
+              {
+                show: panel['y-axis'],
+                min: panel.grid.rightMin,
+                max: panel.grid.rightMax,
+                logBase: panel.grid.rightLogBase,
+                format: panel.y_formats[1],
+                label: panel.rightYAxisLabel,
+              }
+            ];
+
+            panel.xaxis = {
+              show: panel['x-axis'],
+            };
+
+            delete panel.grid.leftMin;
+            delete panel.grid.leftMax;
+            delete panel.grid.leftLogBase;
+            delete panel.grid.rightMin;
+            delete panel.grid.rightMax;
+            delete panel.grid.rightLogBase;
+            delete panel.y_formats;
+            delete panel.leftYAxisLabel;
+            delete panel.rightYAxisLabel;
+            delete panel['y-axis'];
+            delete panel['x-axis'];
+          }
         });
       }
 

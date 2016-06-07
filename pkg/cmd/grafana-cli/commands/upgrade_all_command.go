@@ -28,11 +28,11 @@ func ShouldUpgrade(installed string, remote m.Plugin) bool {
 }
 
 func upgradeAllCommand(c CommandLine) error {
-	pluginDir := c.GlobalString("path")
+	pluginsDir := c.GlobalString("pluginsDir")
 
-	localPlugins := s.GetLocalPlugins(pluginDir)
+	localPlugins := s.GetLocalPlugins(pluginsDir)
 
-	remotePlugins, err := s.ListAllPlugins()
+	remotePlugins, err := s.ListAllPlugins(c.GlobalString("repo"))
 
 	if err != nil {
 		return err
@@ -51,10 +51,10 @@ func upgradeAllCommand(c CommandLine) error {
 	}
 
 	for _, p := range pluginsToUpgrade {
-		log.Infof("Upgrading %v \n", p.Id)
+		log.Infof("Updating %v \n", p.Id)
 
-		s.RemoveInstalledPlugin(pluginDir, p.Id)
-		InstallPlugin(p.Id, pluginDir, "")
+		s.RemoveInstalledPlugin(pluginsDir, p.Id)
+		InstallPlugin(p.Id, "", c)
 	}
 
 	return nil

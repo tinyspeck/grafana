@@ -4,7 +4,7 @@
 //
 // Quickly modify global styling by enabling or disabling optional features.
 
-$enable-flex:               false !default;
+$enable-flex:               true !default;
 $enable-rounded:            true !default;
 $enable-shadows:            false !default;
 $enable-gradients:          false !default;
@@ -77,17 +77,6 @@ $grid-gutter-width: 30px !default;
 
 $enable-flex: false;
 
-$form-sizes: (
-  xs: 5.7rem,
-  sm: 7rem,
-  md: 8.5rem,
-  lg: 10rem,
-  xl: 14rem,
-  xxl: 21rem,
-  xxxl: 28rem
-) !default;
-
-
 // Typography
 // -------------------------
 
@@ -104,7 +93,7 @@ $font-size-sm:   .875rem !default;
 $font-size-xs:   .75rem !default;
 
 $line-height-base: 1.5 !default;
-$font-weight-semi-bold:       600;
+$font-weight-semi-bold: 600;
 
 $font-size-h1: 2.0rem !default;
 $font-size-h2: 1.75rem !default;
@@ -152,6 +141,11 @@ $border-radius-sm:       0.1rem !default;
 $caret-width:            .3em !default;
 $caret-width-lg:         $caret-width !default;
 
+// Page
+
+$page-sidebar-width: 11rem;
+$page-sidebar-margin: 4rem;
+
 // Links
 // -------------------------
 $link-decoration:         none !default;
@@ -167,12 +161,16 @@ $table-sm-cell-padding:         .3rem !default;
 // Forms
 $input-padding-x:                .75rem !default;
 $input-padding-y:                .6rem !default;
-$input-line-height:              1.35rem !default;
+$input-line-height:              1.42rem !default;
 
 $input-btn-border-width:         1px;
-$input-border-radius:            $border-radius !default;
-$input-border-radius-lg:         $border-radius-lg !default;
-$input-border-radius-sm:         $border-radius-sm !default;
+$input-border-radius:            0 $border-radius $border-radius 0 !default;
+$input-border-radius-lg:         0 $border-radius-lg $border-radius-lg 0 !default;
+$input-border-radius-sm:         0 $border-radius-sm $border-radius-sm 0 !default;
+
+$label-border-radius:            $border-radius 0 0 $border-radius !default;
+$label-border-radius-lg:         $border-radius-lg 0 0 $border-radius-lg !default;
+$label-border-radius-sm:         $border-radius-sm 0 0 $border-radius-sm !default;
 
 $input-padding-x-sm:             .5rem !default;
 $input-padding-y-sm:             .25rem !default;
@@ -185,6 +183,7 @@ $input-height-lg:                (($font-size-lg * $line-height-lg) + ($input-pa
 $input-height-sm:                (($font-size-sm * $line-height-sm) + ($input-padding-y-sm * 2)) !default;
 
 $form-group-margin-bottom:       $spacer-y !default;
+$gf-form-margin: 0.2rem;
 
 $cursor-disabled:                not-allowed !default;
 
@@ -198,7 +197,6 @@ $form-icon-danger: url("data:image/svg+xml;charset=utf8,%3Csvg xmlns='http://www
 // Used for a bird's eye view of components dependent on the z-axis
 // Try to avoid customizing these :)
 $zindex-dropdown:          1000;
-$zindex-popover:           1010;
 $zindex-tooltip:           1020;
 $zindex-navbar-fixed:      1030;
 $zindex-modal-backdrop:    1040;
@@ -218,7 +216,17 @@ $btn-padding-y-sm:               .25rem !default;
 $btn-padding-x-lg:               1.5rem !default;
 $btn-padding-y-lg:               .75rem !default;
 
-$btn-border-radius:              3px;
+$btn-border-radius:              2px;
 
 // sidemenu
-$side-menu-width:  15rem;
+$side-menu-width:  14rem;
+
+// dashboard
+$panel-margin: 0.4rem;
+$dashboard-padding: ($panel-margin * 2) $panel-margin $panel-margin $panel-margin;
+
+// tabs
+$tabs-padding-top: 0.6rem;
+$tabs-padding-bottom: 0.4rem;
+$tabs-top-margin: 0.5rem;
+

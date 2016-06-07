@@ -41,7 +41,6 @@ func NewReverseProxy(ds *m.DataSource, proxyPath string, targetUrl *url.URL) *ht
 			req.URL.RawQuery = reqQueryVals.Encode()
 		} else if ds.Type == m.DS_INFLUXDB {
 			req.URL.Path = util.JoinUrlFragments(targetUrl.Path, proxyPath)
-			reqQueryVals.Add("db", ds.Database)
 			req.URL.RawQuery = reqQueryVals.Encode()
 			if !ds.BasicAuth {
 				req.Header.Del("Authorization")
@@ -61,23 +60,15 @@ func NewReverseProxy(ds *m.DataSource, proxyPath string, targetUrl *url.URL) *ht
 		req.Header.Del("Set-Cookie")
 	}
 
-	return &httputil.ReverseProxy{Director: director}
+	return &httputil.ReverseProxy{Director: director, FlushInterval: time.Millisecond * 200}
 }
 
-var dsMap map[int64]*m.DataSource = make(map[int64]*m.DataSource)
-
 func getDatasource(id int64, orgId int64) (*m.DataSource, error) {
-	// ds, exists := dsMap[id]
-	// if exists && ds.OrgId == orgId {
-	// 	return ds, nil
-	// }
-
 	query := m.GetDataSourceByIdQuery{Id: id, OrgId: orgId}
 	if err := bus.Dispatch(&query); err != nil {
 		return nil, err
 	}
 
-	dsMap[id] = &query.Result
 	return &query.Result, nil
 }
 

@@ -146,27 +146,32 @@ function pluginDirectiveLoader($compile, datasourceSrv, $rootScope, $q, $http, $
           };
         });
       }
-      // ConfigCtrl
+      // Datasource ConfigCtrl
       case 'datasource-config-ctrl': {
-        return System.import(scope.datasourceMeta.module).then(function(dsModule) {
+        var dsMeta = scope.ctrl.datasourceMeta;
+        return System.import(dsMeta.module).then(function(dsModule): any {
+          if (!dsModule.ConfigCtrl) {
+            return {notFound: true};
+          }
+
           return {
-            baseUrl: scope.datasourceMeta.baseUrl,
-            name: 'ds-config-' + scope.datasourceMeta.id,
+            baseUrl: dsMeta.baseUrl,
+            name: 'ds-config-' + dsMeta.id,
             bindings: {meta: "=", current: "="},
-            attrs: {meta: "datasourceMeta", current: "current"},
+            attrs: {meta: "ctrl.datasourceMeta", current: "ctrl.current"},
             Component: dsModule.ConfigCtrl,
           };
         });
       }
       // AppConfigCtrl
       case 'app-config-ctrl': {
-        let appModel = scope.ctrl.appModel;
-        return System.import(appModel.module).then(function(appModule) {
+        let model = scope.ctrl.model;
+        return System.import(model.module).then(function(appModule) {
           return {
-            baseUrl: appModel.baseUrl,
-            name: 'app-config-' + appModel.appId,
+            baseUrl: model.baseUrl,
+            name: 'app-config-' + model.id,
             bindings: {appModel: "=", appEditCtrl: "="},
-            attrs: {"app-model": "ctrl.appModel", "app-edit-ctrl": "ctrl"},
+            attrs: {"app-model": "ctrl.model", "app-edit-ctrl": "ctrl"},
             Component: appModule.ConfigCtrl,
           };
         });
@@ -201,9 +206,15 @@ function pluginDirectiveLoader($compile, datasourceSrv, $rootScope, $q, $http, $
     });
 
     $compile(child)(scope);
-
     elem.empty();
-    elem.append(child);
+
+    // let a binding digest cycle complete before adding to dom
+    setTimeout(function() {
+      elem.append(child);
+      scope.$apply(function() {
+        scope.$broadcast('refresh');
+      });
+    });
   }
 
   function registerPluginComponent(scope, elem, attrs, componentInfo) {

@@ -4,7 +4,7 @@ import {OpenTsDatasource} from "../datasource";
 
 describe('opentsdb', function() {
   var ctx = new helpers.ServiceTestContext();
-  var instanceSettings = {url: '' };
+  var instanceSettings = {url: '', jsonData: { tsdbVersion: 1 }};
 
   beforeEach(angularMocks.module('grafana.core'));
   beforeEach(angularMocks.module('grafana.services'));
@@ -12,9 +12,10 @@ describe('opentsdb', function() {
 
   beforeEach(angularMocks.inject(function($q, $rootScope, $httpBackend, $injector) {
     ctx.$q = $q;
-    ctx.$httpBackend =  $httpBackend;
+    ctx.$httpBackend = $httpBackend;
     ctx.$rootScope = $rootScope;
     ctx.ds = $injector.instantiate(OpenTsDatasource, {instanceSettings: instanceSettings});
+    $httpBackend.when('GET', /\.html$/).respond('');
   }));
 
   describe('When performing metricFindQuery', function() {

@@ -1,6 +1,7 @@
 package renderer
 
 import (
+	"fmt"
 	"io"
 	"os"
 	"os/exec"
@@ -11,6 +12,7 @@ import (
 	"github.com/grafana/grafana/pkg/log"
 	"github.com/grafana/grafana/pkg/setting"
 	"github.com/grafana/grafana/pkg/util"
+	"strconv"
 )
 
 type RenderOpts struct {
@@ -18,6 +20,7 @@ type RenderOpts struct {
 	Width     string
 	Height    string
 	SessionId string
+	Timeout   string
 }
 
 func RenderToPng(params *RenderOpts) (string, error) {
@@ -60,11 +63,17 @@ func RenderToPng(params *RenderOpts) (string, error) {
 		close(done)
 	}()
 
+	timeout, err := strconv.Atoi(params.Timeout)
+	if err != nil {
+		timeout = 15
+	}
+
 	select {
-	case <-time.After(15 * time.Second):
+	case <-time.After(time.Duration(timeout) * time.Second):
 		if err := cmd.Process.Kill(); err != nil {
 			log.Error(4, "failed to kill: %v", err)
 		}
+		return "", fmt.Errorf("PhantomRenderer::renderToPng timeout (>%vs)", timeout)
 	case <-done:
 	}
 

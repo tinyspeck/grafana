@@ -38,7 +38,6 @@ export class SideMenuCtrl {
  openUserDropdown() {
    this.orgMenu = [
      {section: 'You', cssClass: 'dropdown-menu-title'},
-     {text: 'Preferences', url: this.getUrl('/profile')},
      {text: 'Profile', url: this.getUrl('/profile')},
    ];
 
@@ -73,9 +72,8 @@ export class SideMenuCtrl {
        this.orgMenu.push({
          text: "Switch to " + org.name,
          icon: "fa fa-fw fa-random",
-         click: () => {
-           this.switchOrg(org.orgId);
-         }
+         url: this.getUrl('/profile/switch-org/' + org.orgId),
+         target: '_self'
        });
      });
 
@@ -84,12 +82,6 @@ export class SideMenuCtrl {
      }
    });
  }
-
- switchOrg(orgId) {
-   this.backendSrv.post('/api/user/using/' + orgId).then(() => {
-     window.location.href = window.location.href;
-   });
- };
 }
 
 export function sideMenuDirective() {
@@ -100,6 +92,22 @@ export function sideMenuDirective() {
     bindToController: true,
     controllerAs: 'ctrl',
     scope: {},
+    link: function(scope, elem) {
+      // hack to hide dropdown menu
+      elem.on('click.dropdown', '.dropdown-menu a', function(evt) {
+        var menu = $(evt.target).parents('.dropdown-menu');
+        var parent = menu.parent();
+        menu.detach();
+
+        setTimeout(function() {
+          parent.append(menu);
+        }, 100);
+      });
+
+      scope.$on("$destory", function() {
+        elem.off('click.dropdown');
+      });
+    }
   };
 }
 

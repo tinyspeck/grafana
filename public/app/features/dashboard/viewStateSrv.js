@@ -36,7 +36,7 @@ function (angular, _, $) {
         self.update(payload);
       });
 
-      $scope.onAppEvent('panel-instantiated', function(evt, payload) {
+      $scope.onAppEvent('panel-initialized', function(evt, payload) {
         self.registerPanel(payload.scope);
       });
 
@@ -129,7 +129,6 @@ function (angular, _, $) {
 
       ctrl.editMode = false;
       ctrl.fullscreen = false;
-      delete ctrl.height;
 
       this.$scope.appEvent('panel-fullscreen-exit', {panelId: ctrl.panel.id});
 
@@ -140,20 +139,16 @@ function (angular, _, $) {
           self.$scope.broadcastRefresh();
         }
         else {
-          self.fullscreenPanel.$broadcast('render');
+          ctrl.render();
         }
         delete self.fullscreenPanel;
       });
     };
 
     DashboardViewState.prototype.enterFullscreen = function(panelScope) {
-      var docHeight = $(window).height();
-      var editHeight = Math.floor(docHeight * 0.3);
-      var fullscreenHeight = Math.floor(docHeight * 0.7);
       var ctrl = panelScope.ctrl;
 
       ctrl.editMode = this.state.edit && this.$scope.dashboardMeta.canEdit;
-      ctrl.height = ctrl.editMode ? editHeight : fullscreenHeight;
       ctrl.fullscreen = true;
 
       this.oldTimeRange = ctrl.range;
@@ -164,7 +159,7 @@ function (angular, _, $) {
       this.$scope.appEvent('panel-fullscreen-enter', {panelId: ctrl.panel.id});
 
       $timeout(function() {
-        panelScope.$broadcast('render');
+        ctrl.render();
       });
     };
 

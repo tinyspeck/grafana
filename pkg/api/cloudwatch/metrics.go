@@ -55,8 +55,10 @@ func init() {
 			"S3BytesWritten", "S3BytesRead", "HDFSUtilization", "HDFSBytesRead", "HDFSBytesWritten", "MissingBlocks", "CorruptBlocks", "TotalLoad", "MemoryTotalMB", "MemoryReservedMB", "MemoryAvailableMB", "MemoryAllocatedMB", "PendingDeletionBlocks", "UnderReplicatedBlocks", "DfsPendingReplicationBlocks", "CapacityRemainingGB",
 			"HbaseBackupFailed", "MostRecentBackupDuration", "TimeSinceLastSuccessfulBackup"},
 		"AWS/ES":       {"ClusterStatus.green", "ClusterStatus.yellow", "ClusterStatus.red", "Nodes", "SearchableDocuments", "DeletedDocuments", "CPUUtilization", "FreeStorageSpace", "JVMMemoryPressure", "AutomatedSnapshotFailure", "MasterCPUUtilization", "MasterFreeStorageSpace", "MasterJVMMemoryPressure", "ReadLatency", "WriteLatency", "ReadThroughput", "WriteThroughput", "DiskQueueLength", "ReadIOPS", "WriteIOPS"},
-		"AWS/Kinesis":  {"PutRecord.Bytes", "PutRecord.Latency", "PutRecord.Success", "PutRecords.Bytes", "PutRecords.Latency", "PutRecords.Records", "PutRecords.Success", "IncomingBytes", "IncomingRecords", "GetRecords.Bytes", "GetRecords.IteratorAgeMilliseconds", "GetRecords.Latency", "GetRecords.Success"},
+		"AWS/Events":   {"Invocations", "FailedInvocations", "TriggeredRules", "MatchedEvents", "ThrottledRules"},
+		"AWS/Kinesis":  {"GetRecords.Bytes", "GetRecords.IteratorAge", "GetRecords.IteratorAgeMilliseconds", "GetRecords.Latency", "GetRecords.Records", "GetRecords.Success", "IncomingBytes", "IncomingRecords", "PutRecord.Bytes", "PutRecord.Latency", "PutRecord.Success", "PutRecords.Bytes", "PutRecords.Latency", "PutRecords.Records", "PutRecords.Success", "ReadProvisionedThroughputExceeded", "WriteProvisionedThroughputExceeded", "IteratorAgeMilliseconds", "OutgoingBytes", "OutgoingRecords"},
 		"AWS/Lambda":   {"Invocations", "Errors", "Duration", "Throttles"},
+		"AWS/Logs":     {"IncomingBytes", "IncomingLogEvents", "ForwardedBytes", "ForwardedLogEvents", "DeliveryErrors", "DeliveryThrottling"},
 		"AWS/ML":       {"PredictCount", "PredictFailureCount"},
 		"AWS/OpsWorks": {"cpu_idle", "cpu_nice", "cpu_system", "cpu_user", "cpu_waitio", "load_1", "load_5", "load_15", "memory_buffers", "memory_cached", "memory_free", "memory_swap", "memory_total", "memory_used", "procs"},
 		"AWS/Redshift": {"CPUUtilization", "DatabaseConnections", "HealthStatus", "MaintenanceMode", "NetworkReceiveThroughput", "NetworkTransmitThroughput", "PercentageDiskSpaceUsed", "ReadIOPS", "ReadLatency", "ReadThroughput", "WriteIOPS", "WriteLatency", "WriteThroughput"},
@@ -84,9 +86,11 @@ func init() {
 		"AWS/EC2":              {"AutoScalingGroupName", "ImageId", "InstanceId", "InstanceType"},
 		"AWS/ELB":              {"LoadBalancerName", "AvailabilityZone"},
 		"AWS/ElasticMapReduce": {"ClusterId", "JobFlowId", "JobId"},
-		"AWS/ES":               {},
-		"AWS/Kinesis":          {"StreamName"},
+		"AWS/ES":               {"ClientId", "DomainName"},
+		"AWS/Events":           {"RuleName"},
+		"AWS/Kinesis":          {"StreamName", "ShardID"},
 		"AWS/Lambda":           {"FunctionName"},
+		"AWS/Logs":             {"LogGroupName", "DestinationType", "FilterName"},
 		"AWS/ML":               {"MLModelId", "RequestMode"},
 		"AWS/OpsWorks":         {"StackId", "LayerId", "InstanceId"},
 		"AWS/Redshift":         {"NodeID", "ClusterIdentifier"},
@@ -126,11 +130,14 @@ func handleGetNamespaces(req *cwRequest, c *middleware.Context) {
 	for key := range metricsMap {
 		keys = append(keys, key)
 	}
-	if customMetricsNamespaces, ok := req.DataSource.JsonData["customMetricsNamespaces"].(string); ok {
-		for _, key := range strings.Split(customMetricsNamespaces, ",") {
+
+	customNamespaces := req.DataSource.JsonData.Get("customMetricsNamespaces").MustString()
+	if customNamespaces != "" {
+		for _, key := range strings.Split(customNamespaces, ",") {
 			keys = append(keys, key)
 		}
 	}
+
 	sort.Sort(sort.StringSlice(keys))
 
 	result := []interface{}{}

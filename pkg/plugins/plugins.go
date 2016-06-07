@@ -3,6 +3,7 @@ package plugins
 import (
 	"encoding/json"
 	"errors"
+	"io/ioutil"
 	"os"
 	"path"
 	"path/filepath"
@@ -21,6 +22,9 @@ var (
 	Apps         map[string]*AppPlugin
 	Plugins      map[string]*PluginBase
 	PluginTypes  map[string]interface{}
+
+	GrafanaLatestVersion string
+	GrafanaHasUpdate     bool
 )
 
 type PluginScanner struct {
@@ -69,6 +73,7 @@ func Init() error {
 		app.initApp()
 	}
 
+	go StartPluginUpdateChecker()
 	return nil
 }
 
@@ -88,8 +93,6 @@ func scan(pluginDir string) error {
 	scanner := &PluginScanner{
 		pluginPath: pluginDir,
 	}
-
-	log.Info("Plugins: Scaning dir %s", pluginDir)
 
 	if err := util.Walk(pluginDir, true, true, scanner.walker); err != nil {
 		if pluginDir != "data/plugins" {
@@ -156,4 +159,32 @@ func (scanner *PluginScanner) loadPluginJson(pluginJsonFilePath string) error {
 
 	reader.Seek(0, 0)
 	return loader.Load(jsonParser, currentDir)
+}
+
+func GetPluginReadme(pluginId string) ([]byte, error) {
+	plug, exists := Plugins[pluginId]
+	if !exists {
+		return nil, PluginNotFoundError{pluginId}
+	}
+
+	if plug.Readme != nil {
+		return plug.Readme, nil
+	}
+
+	readmePath := filepath.Join(plug.PluginDir, "README.md")
+	if _, err := os.Stat(readmePath); os.IsNotExist(err) {
+		readmePath = filepath.Join(plug.PluginDir, "readme.md")
+	}
+
+	if _, err := os.Stat(readmePath); os.IsNotExist(err) {
+		plug.Readme = make([]byte, 0)
+		return plug.Readme, nil
+	}
+
+	if readmeBytes, err := ioutil.ReadFile(readmePath); err != nil {
+		return nil, err
+	} else {
+		plug.Readme = readmeBytes
+		return plug.Readme, nil
+	}
 }

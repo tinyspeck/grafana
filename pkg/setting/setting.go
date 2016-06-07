@@ -124,6 +124,7 @@ var (
 	appliedEnvOverrides          []string
 
 	ReportingEnabled   bool
+	CheckForUpdates    bool
 	GoogleAnalyticsId  string
 	GoogleTagManagerId string
 
@@ -169,6 +170,11 @@ func ToAbsUrl(relativeUrl string) string {
 	return AppUrl + relativeUrl
 }
 
+func shouldRedactKey(s string) bool {
+	uppercased := strings.ToUpper(s)
+	return strings.Contains(uppercased, "PASSWORD") || strings.Contains(uppercased, "SECRET")
+}
+
 func applyEnvVariableOverrides() {
 	appliedEnvOverrides = make([]string, 0)
 	for _, section := range Cfg.Sections() {
@@ -180,7 +186,7 @@ func applyEnvVariableOverrides() {
 
 			if len(envValue) > 0 {
 				key.SetValue(envValue)
-				if strings.Contains(envKey, "PASSWORD") {
+				if shouldRedactKey(envKey) {
 					envValue = "*********"
 				}
 				appliedEnvOverrides = append(appliedEnvOverrides, fmt.Sprintf("%s=%s", envKey, envValue))
@@ -197,7 +203,7 @@ func applyCommandLineDefaultProperties(props map[string]string) {
 			value, exists := props[keyString]
 			if exists {
 				key.SetValue(value)
-				if strings.Contains(keyString, "password") {
+				if shouldRedactKey(keyString) {
 					value = "*********"
 				}
 				appliedCommandLineProperties = append(appliedCommandLineProperties, fmt.Sprintf("%s=%s", keyString, value))
@@ -470,6 +476,7 @@ func NewConfigContext(args *CommandLineArgs) error {
 
 	analytics := Cfg.Section("analytics")
 	ReportingEnabled = analytics.Key("reporting_enabled").MustBool(true)
+	CheckForUpdates = analytics.Key("check_for_updates").MustBool(true)
 	GoogleAnalyticsId = analytics.Key("google_analytics_ua_id").String()
 	GoogleTagManagerId = analytics.Key("google_tag_manager_id").String()
 
@@ -519,6 +526,17 @@ var logLevels = map[string]int{
 	"Critical": 5,
 }
 
+func getLogLevel(key string, defaultName string) (string, int) {
+	levelName := Cfg.Section(key).Key("level").In(defaultName, []string{"Trace", "Debug", "Info", "Warn", "Error", "Critical"})
+
+	level, ok := logLevels[levelName]
+	if !ok {
+		log.Fatal(4, "Unknown log level: %s", levelName)
+	}
+
+	return levelName, level
+}
+
 func initLogging(args *CommandLineArgs) {
 	//close any existing log handlers.
 	log.Close()
@@ -526,8 +544,12 @@ func initLogging(args *CommandLineArgs) {
 	LogModes = strings.Split(Cfg.Section("log").Key("mode").MustString("console"), ",")
 	LogsPath = makeAbsolute(Cfg.Section("paths").Key("logs").String(), HomePath)
 
+	defaultLevelName, _ := getLogLevel("log", "Info")
+
 	LogConfigs = make([]util.DynMap, len(LogModes))
+
 	for i, mode := range LogModes {
+
 		mode = strings.TrimSpace(mode)
 		sec, err := Cfg.GetSection("log." + mode)
 		if err != nil {
@@ -535,12 +557,7 @@ func initLogging(args *CommandLineArgs) {
 		}
 
 		// Log level.
-		levelName := Cfg.Section("log."+mode).Key("level").In("Trace",
-			[]string{"Trace", "Debug", "Info", "Warn", "Error", "Critical"})
-		level, ok := logLevels[levelName]
-		if !ok {
-			log.Fatal(4, "Unknown log level: %s", levelName)
-		}
+		_, level := getLogLevel("log."+mode, defaultLevelName)
 
 		// Generate log configuration.
 		switch mode {
