@@ -11,7 +11,7 @@ function setupAngularRoutes($routeProvider, $locationProvider) {
   $locationProvider.html5Mode(true);
 
   var loadOrgBundle = new BundleLoader('app/features/org/all');
-  var loadAppsBundle = new BundleLoader('app/features/apps/all');
+  var loadPluginsBundle = new BundleLoader('app/features/plugins/all');
   var loadAdminBundle = new BundleLoader('app/features/admin/admin');
   var loadHostsBundle = new BundleLoader('app/features/hosts/all');
 
@@ -56,20 +56,22 @@ function setupAngularRoutes($routeProvider, $locationProvider) {
     controller : 'DashboardImportCtrl',
   })
   .when('/datasources', {
-    templateUrl: 'public/app/features/datasources/partials/list.html',
+    templateUrl: 'public/app/features/plugins/partials/ds_list.html',
     controller : 'DataSourcesCtrl',
     controllerAs: 'ctrl',
-    resolve: loadOrgBundle,
+    resolve: loadPluginsBundle,
   })
   .when('/datasources/edit/:id', {
-    templateUrl: 'public/app/features/datasources/partials/edit.html',
+    templateUrl: 'public/app/features/plugins/partials/ds_edit.html',
     controller : 'DataSourceEditCtrl',
-    resolve: loadOrgBundle,
+    controllerAs: 'ctrl',
+    resolve: loadPluginsBundle,
   })
   .when('/datasources/new', {
-    templateUrl: 'public/app/features/datasources/partials/edit.html',
+    templateUrl: 'public/app/features/plugins/partials/ds_edit.html',
     controller : 'DataSourceEditCtrl',
-    resolve: loadOrgBundle,
+    controllerAs: 'ctrl',
+    resolve: loadPluginsBundle,
   })
   .when('/hosts', {
     templateUrl: 'public/app/features/hosts/partials/hosts.html',
@@ -98,16 +100,20 @@ function setupAngularRoutes($routeProvider, $locationProvider) {
     resolve: loadOrgBundle,
   })
   .when('/profile', {
-    templateUrl: 'public/app/features/profile/partials/profile.html',
+    templateUrl: 'public/app/features/org/partials/profile.html',
     controller : 'ProfileCtrl',
+    controllerAs: 'ctrl',
+    resolve: loadOrgBundle,
   })
   .when('/profile/password', {
-    templateUrl: 'public/app/features/profile/partials/password.html',
+    templateUrl: 'public/app/features/org/partials/change_password.html',
     controller : 'ChangePasswordCtrl',
+    resolve: loadOrgBundle,
   })
   .when('/profile/select-org', {
-    templateUrl: 'public/app/features/profile/partials/select_org.html',
+    templateUrl: 'public/app/features/org/partials/select_org.html',
     controller : 'SelectOrgCtrl',
+    resolve: loadOrgBundle,
   })
   // ADMIN
   .when('/admin', {
@@ -177,28 +183,28 @@ function setupAngularRoutes($routeProvider, $locationProvider) {
     controller : 'SnapshotsCtrl',
     controllerAs: 'ctrl',
   })
-  .when('/apps', {
-    templateUrl: 'public/app/features/apps/partials/list.html',
-    controller: 'AppListCtrl',
+  .when('/plugins', {
+    templateUrl: 'public/app/features/plugins/partials/plugin_list.html',
+    controller: 'PluginListCtrl',
     controllerAs: 'ctrl',
-    resolve: loadAppsBundle,
+    resolve: loadPluginsBundle,
   })
-  .when('/apps/:appId/edit', {
-    templateUrl: 'public/app/features/apps/partials/edit.html',
-    controller: 'AppEditCtrl',
+  .when('/plugins/:pluginId/edit', {
+    templateUrl: 'public/app/features/plugins/partials/plugin_edit.html',
+    controller: 'PluginEditCtrl',
     controllerAs: 'ctrl',
-    resolve: loadAppsBundle,
+    resolve: loadPluginsBundle,
   })
-  .when('/apps/:appId/page/:slug', {
-    templateUrl: 'public/app/features/apps/partials/page.html',
+  .when('/plugins/:pluginId/page/:slug', {
+    templateUrl: 'public/app/features/plugins/partials/plugin_page.html',
     controller: 'AppPageCtrl',
     controllerAs: 'ctrl',
-    resolve: loadAppsBundle,
+    resolve: loadPluginsBundle,
   })
   .when('/global-alerts', {
     templateUrl: 'public/app/features/dashboard/partials/globalAlerts.html',
   })
-  .when('/styleguide', {
+  .when('/styleguide/:page?', {
     controller: 'StyleGuideCtrl',
     controllerAs: 'ctrl',
     templateUrl: 'public/app/features/styleguide/styleguide.html',

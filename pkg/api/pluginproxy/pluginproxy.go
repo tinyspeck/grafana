@@ -26,7 +26,7 @@ type templateData struct {
 func getHeaders(route *plugins.AppPluginRoute, orgId int64, appId string) (http.Header, error) {
 	result := http.Header{}
 
-	query := m.GetAppSettingByAppIdQuery{OrgId: orgId, AppId: appId}
+	query := m.GetPluginSettingByIdQuery{OrgId: orgId, PluginId: appId}
 
 	if err := bus.Dispatch(&query); err != nil {
 		return nil, err
@@ -88,7 +88,7 @@ func NewApiPluginProxy(ctx *middleware.Context, proxyPath string, route *plugins
 			}
 
 			for key, value := range headers {
-				log.Info("setting key %v value %v", key, value[0])
+				log.Trace("setting key %v value %v", key, value[0])
 				req.Header.Set(key, value[0])
 			}
 		}

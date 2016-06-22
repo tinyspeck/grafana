@@ -6,34 +6,20 @@ import (
 
 	"github.com/gosimple/slug"
 	"github.com/grafana/grafana/pkg/models"
+	"github.com/grafana/grafana/pkg/setting"
 )
-
-type AppPluginPage struct {
-	Name      string          `json:"name"`
-	Slug      string          `json:"slug"`
-	Component string          `json:"component"`
-	Role      models.RoleType `json:"role"`
-}
 
 type AppPluginCss struct {
 	Light string `json:"light"`
 	Dark  string `json:"dark"`
 }
 
-type AppIncludeInfo struct {
-	Name string `json:"name"`
-	Type string `json:"type"`
-	Id   string `json:"id"`
-}
-
 type AppPlugin struct {
 	FrontendPluginBase
-	Pages    []*AppPluginPage  `json:"pages"`
-	Routes   []*AppPluginRoute `json:"routes"`
-	Includes []*AppIncludeInfo `json:"-"`
+	Routes []*AppPluginRoute `json:"routes"`
 
-	Pinned  bool `json:"-"`
-	Enabled bool `json:"-"`
+	FoundChildPlugins []*PluginInclude `json:"-"`
+	Pinned            bool             `json:"-"`
 }
 
 type AppPluginRoute struct {
@@ -70,7 +56,7 @@ func (app *AppPlugin) initApp() {
 	for _, panel := range Panels {
 		if strings.HasPrefix(panel.PluginDir, app.PluginDir) {
 			panel.setPathsBasedOnApp(app)
-			app.Includes = append(app.Includes, &AppIncludeInfo{
+			app.FoundChildPlugins = append(app.FoundChildPlugins, &PluginInclude{
 				Name: panel.Name,
 				Id:   panel.Id,
 				Type: panel.Type,
@@ -82,7 +68,7 @@ func (app *AppPlugin) initApp() {
 	for _, ds := range DataSources {
 		if strings.HasPrefix(ds.PluginDir, app.PluginDir) {
 			ds.setPathsBasedOnApp(app)
-			app.Includes = append(app.Includes, &AppIncludeInfo{
+			app.FoundChildPlugins = append(app.FoundChildPlugins, &PluginInclude{
 				Name: ds.Name,
 				Id:   ds.Id,
 				Type: ds.Type,
@@ -91,9 +77,15 @@ func (app *AppPlugin) initApp() {
 	}
 
 	// slugify pages
-	for _, page := range app.Pages {
-		if page.Slug == "" {
-			page.Slug = slug.Make(page.Name)
+	for _, include := range app.Includes {
+		if include.Slug == "" {
+			include.Slug = slug.Make(include.Name)
+		}
+		if include.Type == "page" && include.DefaultNav {
+			app.DefaultNavUrl = setting.AppSubUrl + "/plugins/" + app.Id + "/page/" + include.Slug
+		}
+		if include.Type == "dashboard" && include.DefaultNav {
+			app.DefaultNavUrl = setting.AppSubUrl + "/dashboard/db/" + include.Slug
 		}
 	}
 }

@@ -131,7 +131,7 @@ ol,
 ul,
 dl {
   margin-top: 0;
-  margin-bottom: 1rem;
+  margin-bottom: 0rem;
 }
 
 ol ol,
@@ -270,11 +270,9 @@ th {
 //
 // Forms
 //
-
 label {
   // Allow labels to use `margin` for spacing.
   display: inline-block;
-  margin-bottom: .5rem;
 }
 
 // Work around a Firefox/IE bug where the transparent `button` background

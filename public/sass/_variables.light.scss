@@ -13,10 +13,10 @@ $black:                 #000;
 
 // -------------------------
 $black:            #000;
-$dark-1:           #141414; // (body)
-$dark-2:           #1f1d1d; // ($gray-darker)
-$dark-3:           #262626; // ($gray-dark)
-$dark-4:           #333333;
+$dark-1:           #141414;
+$dark-2:           #1f1d1d;
+$dark-3:           #292929;
+$dark-4:           #373737;
 $dark-5:           #444444;
 $gray-1:           #555555;
 $gray-2:           #7B7B7B;
@@ -31,7 +31,7 @@ $white:            #fff;
 // Accent colors
 // -------------------------
 $blue:             	   	#2AB2E4;
-$blue-dark:             #75CAEB;
+$blue-dark:             #3CAAD6;
 $green:                 #28B62C;
 $red:                   #FF4136;
 $yellow:                #FF851B;
@@ -44,6 +44,7 @@ $brand-primary:         $orange;
 $brand-success:         $green;
 $brand-warning:         $orange;
 $brand-danger:          $red;
+$brand-text-highlight:  #f7941d;
 
 // Status colors
 // -------------------------
@@ -54,22 +55,34 @@ $critical:              #EC2128;
 // Scaffolding
 // -------------------------
 
-$body-bg:  		  $white;
-$page-bg:  		  $white;
-$body-color:    $gray-1;
-$text-color:    $gray-1;
+$body-bg:  		  		    $white;
+$page-bg:  		  		    $white;
+$body-color:    		    $gray-1;
+$text-color:    		    $gray-1;
+$text-color-strong:	    $white;
+$text-color-weak: 	    $gray-1;
+$text-color-faint:      $gray-3;
+$text-color-emphasis: 	$dark-5;
+
+$text-shadow-strong: none;
+$text-shadow-faint: none;
+
+// gradients
+$brand-gradient: linear-gradient(to right, rgba(255,213,0,1.0) 0%, rgba(255,68,0,1.0) 99%, rgba(255,68,0,1.0) 100%);
+$page-gradient: linear-gradient(60deg, transparent 70%, darken($page-bg, 4%) 98%);
 
 // Links
 // -------------------------
 $link-color:             $gray-1;
 $link-color-disabled:    lighten($link-color, 30%);
 $link-hover-color:       darken($link-color, 20%);
+$external-link-color:    $blue;
 
 // Typography
 // -------------------------
 $headings-color:       $text-color;
 $abbr-border-color: 	 $gray-2 !default;
-$text-muted: 			     darken($link-color,30%);
+$text-muted: 			     $text-color-weak;
 
 $blockquote-small-color:  $gray-2 !default;
 $blockquote-border-color: $gray-3 !default;
@@ -96,7 +109,8 @@ $tight-form-func-bg:            $gray-5;
 $tight-form-func-highlight-bg:  $gray-6;
 
 $modal-background: $body-bg;
-$code-tag-bg:      $dark-5;
+$code-tag-bg:      $gray-6;
+$code-tag-border:  darken($code-tag-bg, 3%);
 
 // Lists
 $grafanaListBackground:    	   $gray-6;
@@ -125,8 +139,8 @@ $scrollbarBorder:       $gray-4;
 $btn-primary-bg:        $brand-primary;
 $btn-primary-bg-hl:     lighten($brand-primary, 8%);
 
-$btn-info-bg:           lighten($purple, 3%);
-$btn-info-bg-hl:        darken($purple, 3%);
+$btn-secondary-bg:      $blue-dark;
+$btn-secondary-bg-hl:   lighten($blue-dark, 4%);
 
 $btn-success-bg:        lighten($green, 3%);
 $btn-success-bg-hl:     darken($green, 3%);
@@ -156,15 +170,16 @@ $input-box-shadow:               none;
 $input-border-focus:             $blue !default;
 $input-box-shadow-focus:         $blue !default;
 $input-color-placeholder:        $gray-4 !default;
-$input-label-bg:	        	     $gray-5;
+$input-label-bg:	        	     $gray-6;
 
 // Sidemenu
 // -------------------------
 $side-menu-bg:            $body-bg;
 $side-menu-item-hover-bg: $gray-6;
+$side-menu-opacity:		  0.97;
 
 // search
-$searchShadow: 0 5px 30px 0 lighten($gray-2, 30%);
+$search-shadow: 0 5px 30px 0 lighten($gray-2, 30%);
 
 // Dropdowns
 // -------------------------
@@ -173,14 +188,14 @@ $dropdownBorder:                $tight-form-border;
 $dropdownDividerTop:            $gray-6;
 $dropdownDividerBottom:         $white;
 $dropdownDivider:               $dropdownDividerTop;
-$dropdownTitle:                 $dark-5;
+$dropdownTitle:                 $gray-3;
 
 $dropdownLinkColor:             $dark-3;
-$dropdownLinkColorHover:        $white;
-$dropdownLinkColorActive:       $white;
+$dropdownLinkColorHover:        $link-color;
+$dropdownLinkColorActive:       $link-color;
 
-$dropdownLinkBackgroundActive:  $blue;
-$dropdownLinkBackgroundHover:   $blue;
+$dropdownLinkBackgroundActive:  $gray-6;
+$dropdownLinkBackgroundHover:   $gray-6;
 
 
 // COMPONENT VARIABLES
@@ -250,29 +265,30 @@ $successText:             lighten($green, 10%);
 $successBackground:       $green;
 $successBorder:           transparent;
 
-$infoText:                lighten($purple,10%);
-$infoBackground:          $purple;
+$infoText:                $blue;
+$infoBackground:          $blue-dark;
 $infoBorder:              transparent;
 
+// popover
+$popover-bg:              $gray-5;
+$popover-color:           $text-color;
+
+$popover-help-bg:         $blue-dark;
+$popover-help-color:      $gray-6;
 
 // Tooltips and popovers
 // -------------------------
-$tooltipColor:            $white;
-$tooltipBackground:       $gray-4;
+$tooltipColor:            $popover-help-color;
+$tooltipBackground:       $popover-help-bg;
 $tooltipArrowWidth:       5px;
 $tooltipArrowColor:       $tooltipBackground;
-$tooltipLinkColor:        darken($white,11%);
-
-$popoverBackground:       $white;
-$popoverArrowWidth:       15px;
-$popoverArrowColor:       $white;
-$popoverTitleBackground:  $white;
-
-// Special enhancement for popovers
-$popoverArrowOuterWidth:  $popoverArrowWidth + 1;
-$popoverArrowOuterColor:  rgba(0,0,0,.25);
+$tooltipLinkColor:        lighten($popover-help-color, 5%);
+$graph-tooltip-bg:        $gray-5;
 
 // images
 $checkboxImageUrl: '../img/checkbox_white.png';
 
-
+// cards
+$card-background: linear-gradient(135deg, $gray-5, $gray-6);
+$card-background-hover: linear-gradient(135deg, $gray-6, $gray-7);
+$card-shadow: -1px -1px 0 0 hsla(0, 0%, 100%, .1), 1px 1px 0 0 rgba(0, 0, 0, .1);

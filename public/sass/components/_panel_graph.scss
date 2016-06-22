@@ -22,8 +22,11 @@
 }
 
 .graph-legend {
-  margin: 0 20px;
+  @include clearfix();
+  margin: 0 $spacer;
   text-align: center;
+  width: calc(100% - $spacer);
+  padding-top: 6px;
 
   .popover-content {
     padding: 0;
@@ -39,6 +42,7 @@
 .graph-legend-icon,
 .graph-legend-alias,
 .graph-legend-value {
+  cursor: pointer;
   float: left;
   white-space: nowrap;
   font-size: 85%;
@@ -70,7 +74,10 @@
   float: left;
   white-space: nowrap;
   padding-left: 10px;
-  padding-top: 6px;
+
+  &--right-y {
+    float: right;
+  }
 }
 
 .graph-legend-value {
@@ -78,17 +85,24 @@
 }
 
 .graph-legend-table {
-  width: 100%;
-  margin: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
 
   .graph-legend-series {
     display: table-row;
     float: none;
     padding-left: 0;
-    &.pull-right {
+    &--right-y {
       float: none;
+
+      .graph-legend-alias:after {
+        content: '(right-y)';
+        padding: 0 5px;
+        color: $text-color-weak;
+      }
     }
   }
+
 
   td, .graph-legend-alias, .graph-legend-icon, .graph-legend-value {
     float: none;
@@ -174,14 +188,14 @@
 }
 
 .graph-legend-series-hidden {
-  a {
+  .graph-legend-value,
+  .graph-legend-alias {
     color: $link-color-disabled;
   }
 }
 
 .graph-legend-popover {
   width: 200px;
-  min-height: 100px;
   label {
     display: inline-block;
   }
@@ -221,36 +235,61 @@
 
 .graph-tooltip {
   white-space: nowrap;
+  font-size: $font-size-sm;
+  background-color: $graph-tooltip-bg;
+  color: $text-color;
 
   .graph-tooltip-time {
     text-align: center;
-    font-weight: $font-weight-semi-bold;
     position: relative;
     top: -3px;
+    padding: 0.2rem;
   }
 
-  .tone-down {
-    opacity: 0.7;
+  .graph-tooltip-list-item {
+    display: table-row;
+
+    &--highlight {
+      color: $text-color-emphasis;
+      font-weight: bold;
+    }
   }
+
+  .graph-tooltip-series-name {
+    display: table-cell;
+    padding: 0.15rem;
+  }
+
+  .graph-tooltip-value {
+    display: table-cell;
+    font-weight: bold;
+    padding-left: 15px;
+    text-align: right;
+  }
+}
+
+.graph-annotation {
 
   .label-tag {
     margin-right: 4px;
     margin-top: 8px;
   }
 
-  .graph-tooltip-list-item {
-    display: table-row;
+  .graph-annotation-title {
+    font-weight: $font-weight-semi-bold;
+    position: relative;
+    top: -0.4rem;
   }
 
-  .graph-tooltip-series-name {
-    display: table-cell;
+  a {
+    color: $blue;
+    text-decoration: underline;
   }
 
-  .graph-tooltip-value {
-    display: table-cell;
-    font-weight: bold;
-    padding-left: 10px;
-    text-align: right;
+  .graph-annotation-time {
+    position: relative;
+    text-align: center;
+    top: 0.6rem;
   }
 }
 
@@ -258,29 +297,12 @@
   top: 50%;
   left: -5px;
   transform: rotate(-90deg);
-  -o-transform: rotate(-90deg);
-  -ms-transform: rotate(-90deg);
-  -moz-transform: rotate(-90deg);
-  -webkit-transform: rotate(-90deg);
   transform-origin: left top;
-  -o-transform-origin: left top;
-  -ms-transform-origin: left top;
-  -moz-transform-origin: left top;
-  -webkit-transform-origin: left top;
 }
 
 .right-yaxis-label {
   top: 50%;
   right: -5px;
-
-  -webkit-transform: rotate(90deg);
-  -webkit-transform-origin: right top;
-  -moz-transform: rotate(90deg);
-  -moz-transform-origin: right top;
-  -ms-transform: rotate(90deg);
-  -ms-transform-origin: right top;
-  -o-transform: rotate(90deg);
-  -o-transform-origin: right top;
   transform: rotate(90deg);
   transform-origin: right top;
 }
@@ -293,6 +315,3 @@
   font-size: 12px;
 }
 
-.graph-legend-fixed-height {
-  overflow-y: scroll;
-}

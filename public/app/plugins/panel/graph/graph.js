@@ -6,13 +6,13 @@ define([
   'app/core/utils/kbn',
   './graph_tooltip',
   'jquery.flot',
-  'jquery.flot.events',
   'jquery.flot.selection',
   'jquery.flot.time',
   'jquery.flot.stack',
   'jquery.flot.stackpercent',
   'jquery.flot.fillbelow',
-  'jquery.flot.crosshair'
+  'jquery.flot.crosshair',
+  './jquery.flot.events',
 ],
 function (angular, $, moment, _, kbn, GraphTooltip) {
   'use strict';
@@ -29,7 +29,6 @@ function (angular, $, moment, _, kbn, GraphTooltip) {
         var panel = ctrl.panel;
         var data, annotations;
         var sortedSeries;
-        var graphHeight;
         var legendSideLastValue = null;
         var rootScope = scope.$root;
 
@@ -55,7 +54,7 @@ function (angular, $, moment, _, kbn, GraphTooltip) {
         }, scope);
 
         // Receive render events
-        scope.$on('render',function(event, renderData) {
+        ctrl.events.on('render', function(renderData) {
           data = renderData || data;
           if (!data) {
             ctrl.refresh();
@@ -69,8 +68,12 @@ function (angular, $, moment, _, kbn, GraphTooltip) {
           if (!panel.legend.show || panel.legend.rightSide) {
             return 0;
           }
+
           if (panel.legend.alignAsTable) {
-            var total = 30 + (25 * data.length);
+            var legendSeries = _.filter(data, function(series) {
+              return series.hideFromLegend(panel.legend) === false;
+            });
+            var total = 23 + (21 * legendSeries.length);
             return Math.min(total, Math.floor(panelHeight/2));
           } else {
             return 26;
@@ -79,19 +82,12 @@ function (angular, $, moment, _, kbn, GraphTooltip) {
 
         function setElementHeight() {
           try {
-            graphHeight = ctrl.height || panel.height || ctrl.row.height;
-            if (_.isString(graphHeight)) {
-              graphHeight = parseInt(graphHeight.replace('px', ''), 10);
-            }
-
-            graphHeight -= 5; // padding
-            graphHeight -= panel.title ? 24 : 9; // subtract panel title bar
-            graphHeight = graphHeight - getLegendHeight(graphHeight); // subtract one line legend
-
-            elem.css('height', graphHeight + 'px');
+            var height = ctrl.height - getLegendHeight(ctrl.height);
+            elem.css('height', height + 'px');
 
             return true;
           } catch(e) { // IE throws errors sometimes
+            console.log(e);
             return false;
           }
         }
@@ -101,13 +97,9 @@ function (angular, $, moment, _, kbn, GraphTooltip) {
             return true;
           }
 
-          if (ctrl.otherPanelInFullscreenMode()) {
-            return true;
-          }
-
           if (!setElementHeight()) { return true; }
 
-          if (_.isString(data)) {
+          if(_.isString(data)) {
             render_panel_as_graphite_png(data);
             return true;
           }
@@ -123,7 +115,7 @@ function (angular, $, moment, _, kbn, GraphTooltip) {
           for (var i = 0; i < data.length; i++) {
             var series = data[i];
             var axis = yaxis[series.yaxis - 1];
-            var formater = kbn.valueFormats[panel.y_formats[series.yaxis - 1]];
+            var formater = kbn.valueFormats[panel.yaxes[series.yaxis - 1].format];
 
             // decimal override
             if (_.isNumber(panel.decimals)) {
@@ -140,18 +132,18 @@ function (angular, $, moment, _, kbn, GraphTooltip) {
           }
 
           // add left axis labels
-          if (panel.leftYAxisLabel) {
+          if (panel.yaxes[0].label) {
             var yaxisLabel = $("<div class='axisLabel left-yaxis-label'></div>")
-              .text(panel.leftYAxisLabel)
+              .text(panel.yaxes[0].label)
               .appendTo(elem);
 
             yaxisLabel.css("margin-top", yaxisLabel.width() / 2);
           }
 
           // add right axis labels
-          if (panel.rightYAxisLabel) {
+          if (panel.yaxes[1].label) {
             var rightLabel = $("<div class='axisLabel right-yaxis-label'></div>")
-              .text(panel.rightYAxisLabel)
+              .text(panel.yaxes[1].label)
               .appendTo(elem);
 
             rightLabel.css("margin-top", rightLabel.width() / 2);
@@ -159,8 +151,10 @@ function (angular, $, moment, _, kbn, GraphTooltip) {
         }
 
         function processOffsetHook(plot, gridMargin) {
-          if (panel.leftYAxisLabel) { gridMargin.left = 20; }
-          if (panel.rightYAxisLabel) { gridMargin.right = 20; }
+          var left = panel.yaxes[0];
+          var right = panel.yaxes[1];
+          if (left.show && left.label) { gridMargin.left = 20; }
+          if (right.show && right.label) { gridMargin.right = 20; }
         }
 
         // Function for rendering panel
@@ -200,9 +194,8 @@ function (angular, $, moment, _, kbn, GraphTooltip) {
                 fill: 1,
                 fillColor: false,
                 radius: panel.points ? panel.pointradius : 2
-                // little points when highlight points
               },
-              shadowSize: 1
+              shadowSize: 0
             },
             yaxes: [],
             xaxis: {},
@@ -226,8 +219,7 @@ function (angular, $, moment, _, kbn, GraphTooltip) {
 
           for (var i = 0; i < data.length; i++) {
             var series = data[i];
-            series.applySeriesOverrides(panel.seriesOverrides);
-            series.data = series.getFlotPairs(series.nullPointMode || panel.nullPointMode, panel.y_formats);
+            series.data = series.getFlotPairs(series.nullPointMode || panel.nullPointMode);
 
             // if hidden remove points and disable stack
             if (ctrl.hiddenSeries[series.alias]) {
@@ -289,8 +281,8 @@ function (angular, $, moment, _, kbn, GraphTooltip) {
           var max = _.isUndefined(ctrl.range.to) ? null : ctrl.range.to.valueOf();
 
           options.xaxis = {
-            timezone: dashboard.timezone,
-            show: panel['x-axis'],
+            timezone: dashboard.getTimezone(),
+            show: panel.xaxis.show,
             mode: "time",
             min: min,
             max: max,
@@ -333,39 +325,28 @@ function (angular, $, moment, _, kbn, GraphTooltip) {
           _.each(annotations, function(event) {
             if (!types[event.annotation.name]) {
               types[event.annotation.name] = {
-                level: _.keys(types).length + 1,
-                icon: {
-                  icon: "fa fa-chevron-down",
-                  size: event.annotation.iconSize,
-                  color: event.annotation.iconColor,
-                }
+                color: event.annotation.iconColor,
+                position: 'BOTTOM',
+                markerSize: 5,
               };
-            }
-
-            if (event.annotation.showLine) {
-              options.grid.markings.push({
-                color: event.annotation.lineColor,
-                lineWidth: 1,
-                xaxis: { from: event.min, to: event.max }
-              });
             }
           });
 
           options.events = {
             levels: _.keys(types).length + 1,
             data: annotations,
-            types: types
+            types: types,
           };
         }
 
         function configureAxisOptions(data, options) {
           var defaults = {
             position: 'left',
-            show: panel['y-axis'],
-            min: panel.grid.leftMin,
+            show: panel.yaxes[0].show,
+            min: panel.yaxes[0].min,
             index: 1,
-            logBase: panel.grid.leftLogBase || 1,
-            max: panel.percentage && panel.stack ? 100 : panel.grid.leftMax,
+            logBase: panel.yaxes[0].logBase || 1,
+            max: panel.percentage && panel.stack ? 100 : panel.yaxes[0].max,
           };
 
           options.yaxes.push(defaults);
@@ -373,18 +354,19 @@ function (angular, $, moment, _, kbn, GraphTooltip) {
           if (_.findWhere(data, {yaxis: 2})) {
             var secondY = _.clone(defaults);
             secondY.index = 2,
-            secondY.logBase = panel.grid.rightLogBase || 1,
+            secondY.show = panel.yaxes[1].show;
+            secondY.logBase = panel.yaxes[1].logBase || 1,
             secondY.position = 'right';
-            secondY.min = panel.grid.rightMin;
-            secondY.max = panel.percentage && panel.stack ? 100 : panel.grid.rightMax;
+            secondY.min = panel.yaxes[1].min;
+            secondY.max = panel.percentage && panel.stack ? 100 : panel.yaxes[1].max;
             options.yaxes.push(secondY);
 
             applyLogScale(options.yaxes[1], data);
-            configureAxisMode(options.yaxes[1], panel.percentage && panel.stack ? "percent" : panel.y_formats[1]);
+            configureAxisMode(options.yaxes[1], panel.percentage && panel.stack ? "percent" : panel.yaxes[1].format);
           }
 
           applyLogScale(options.yaxes[0], data);
-          configureAxisMode(options.yaxes[0], panel.percentage && panel.stack ? "percent" : panel.y_formats[0]);
+          configureAxisMode(options.yaxes[0], panel.percentage && panel.stack ? "percent" : panel.yaxes[0].format);
         }
 
         function applyLogScale(axis, data) {
@@ -470,14 +452,23 @@ function (angular, $, moment, _, kbn, GraphTooltip) {
           url += panel.fill !== 0 ? ('&areaAlpha=' + (panel.fill/10).toFixed(1)) : '';
           url += panel.linewidth !== 0 ? '&lineWidth=' + panel.linewidth : '';
           url += panel.legend.show ? '&hideLegend=false' : '&hideLegend=true';
-          url += panel.grid.leftMin !== null ? '&yMin=' + panel.grid.leftMin : '';
-          url += panel.grid.leftMax !== null ? '&yMax=' + panel.grid.leftMax : '';
-          url += panel.grid.rightMin !== null ? '&yMin=' + panel.grid.rightMin : '';
-          url += panel.grid.rightMax !== null ? '&yMax=' + panel.grid.rightMax : '';
-          url += panel['x-axis'] ? '' : '&hideAxes=true';
-          url += panel['y-axis'] ? '' : '&hideYAxis=true';
 
-          switch(panel.y_formats[0]) {
+          if (panel.yaxes && panel.yaxes.length > 0) {
+            var showYaxis = false;
+            for(var i = 0; panel.yaxes.length > i; i++) {
+              if (panel.yaxes[i].show) {
+                url += (panel.yaxes[i].min !== null && panel.yaxes[i].min !== undefined) ? '&yMin=' + panel.yaxes[i].min : '';
+                url += (panel.yaxes[i].max !== null && panel.yaxes[i].max !== undefined) ? '&yMax=' + panel.yaxes[i].max : '';
+                showYaxis = true;
+                break;
+              }
+            }
+            url += showYaxis ? '' : '&hideYAxis=true';
+          }
+
+          url += panel.xaxis.show ? '' : '&hideAxes=true';
+
+          switch(panel.yaxes[0].format) {
             case 'bytes':
               url += '&yUnitSystem=binary';
               break;

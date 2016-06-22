@@ -38,7 +38,7 @@ export class OrgUsersCtrl {
 
   removeUser(user) {
     this.$scope.appEvent('confirm-modal', {
-      title: 'Confirm delete user',
+      title: 'Delete',
       text: 'Are you sure you want to delete user ' + user.login + '?',
       yesText: "Delete",
       icon: "fa-warning",
@@ -75,7 +75,7 @@ export class OrgUsersCtrl {
 
     this.$scope.appEvent('show-modal', {
       src: 'public/app/features/org/partials/invite.html',
-      modalClass: 'modal-no-header invite-modal',
+      modalClass: 'invite-modal',
       scope: modalScope
     });
   }

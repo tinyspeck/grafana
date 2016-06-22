@@ -2,6 +2,7 @@ package api
 
 import (
 	"github.com/grafana/grafana/pkg/api/dtos"
+	"github.com/grafana/grafana/pkg/bus"
 	"github.com/grafana/grafana/pkg/middleware"
 	m "github.com/grafana/grafana/pkg/models"
 	"github.com/grafana/grafana/pkg/plugins"
@@ -14,6 +15,12 @@ func setIndexViewData(c *middleware.Context) (*dtos.IndexViewData, error) {
 		return nil, err
 	}
 
+	prefsQuery := m.GetPreferencesWithDefaultsQuery{OrgId: c.OrgId, UserId: c.UserId}
+	if err := bus.Dispatch(&prefsQuery); err != nil {
+		return nil, err
+	}
+	prefs := prefsQuery.Result
+
 	var data = dtos.IndexViewData{
 		User: &dtos.CurrentUser{
 			Id:             c.UserId,
@@ -21,12 +28,13 @@ func setIndexViewData(c *middleware.Context) (*dtos.IndexViewData, error) {
 			Login:          c.Login,
 			Email:          c.Email,
 			Name:           c.Name,
-			LightTheme:     c.Theme == "light",
 			OrgId:          c.OrgId,
 			OrgName:        c.OrgName,
 			OrgRole:        c.OrgRole,
 			GravatarUrl:    dtos.GetGravatarUrl(c.Email),
 			IsGrafanaAdmin: c.IsGrafanaAdmin,
+			LightTheme:     prefs.Theme == "light",
+			Timezone:       prefs.Timezone,
 		},
 		Settings:           settings,
 		AppUrl:             setting.AppUrl,
@@ -36,7 +44,7 @@ func setIndexViewData(c *middleware.Context) (*dtos.IndexViewData, error) {
 	}
 
 	if setting.DisableGravatar {
-		data.User.GravatarUrl = setting.AppSubUrl + "/public/img/user_profile.png"
+		data.User.GravatarUrl = setting.AppSubUrl + "/public/img/transparent.png"
 	}
 
 	if len(data.User.Name) == 0 {
@@ -48,15 +56,23 @@ func setIndexViewData(c *middleware.Context) (*dtos.IndexViewData, error) {
 		data.User.LightTheme = true
 	}
 
+	dashboardChildNavs := []*dtos.NavLink{
+		{Text: "Home", Url: setting.AppSubUrl + "/"},
+		{Text: "Playlists", Url: setting.AppSubUrl + "/playlists"},
+		{Text: "Snapshots", Url: setting.AppSubUrl + "/dashboard/snapshots"},
+	}
+
+	if c.OrgRole == m.ROLE_ADMIN || c.OrgRole == m.ROLE_EDITOR {
+		dashboardChildNavs = append(dashboardChildNavs, &dtos.NavLink{Divider: true})
+		dashboardChildNavs = append(dashboardChildNavs, &dtos.NavLink{Text: "New", Icon: "fa fa-plus", Url: setting.AppSubUrl + "/dashboard/new"})
+		dashboardChildNavs = append(dashboardChildNavs, &dtos.NavLink{Text: "Import", Icon: "fa fa-download", Url: setting.AppSubUrl + "/import/dashboard"})
+	}
+
 	data.MainNavLinks = append(data.MainNavLinks, &dtos.NavLink{
-		Text: "Dashboards",
-		Icon: "icon-gf icon-gf-dashboard",
-		Url:  setting.AppSubUrl + "/",
-		Children: []*dtos.NavLink{
-			{Text: "Home dashboard", Icon: "fa fa-fw fa-list", Url: setting.AppSubUrl + "/"},
-			{Text: "Playlists", Icon: "fa fa-fw fa-list", Url: setting.AppSubUrl + "/playlists"},
-			{Text: "Snapshots", Icon: "fa-fw icon-gf icon-gf-snapshot", Url: setting.AppSubUrl + "/dashboard/snapshots"},
-		},
+		Text:     "Dashboards",
+		Icon:     "icon-gf icon-gf-dashboard",
+		Url:      setting.AppSubUrl + "/",
+		Children: dashboardChildNavs,
 	})
 
 	data.MainNavLinks = append(data.MainNavLinks, &dtos.NavLink{
@@ -71,9 +87,6 @@ func setIndexViewData(c *middleware.Context) (*dtos.IndexViewData, error) {
 	    Url: setting.AppSubUrl + "/dashboard/metrics",
 	})
 
-	// data.MainNavLinks = append(data.MainNavLinks, &dtos.NavLink{Text: "Playlists", Icon: "fa fa-fw fa-list", Url: setting.AppSubUrl + "/playlists"})
-	// data.MainNavLinks = append(data.MainNavLinks, &dtos.NavLink{Text: "Snapshots", Icon: "fa-fw icon-gf icon-gf-snapshot", Url: setting.AppSubUrl + "/dashboard/snapshots"})
-
 	if c.OrgRole == m.ROLE_ADMIN {
 		data.MainNavLinks = append(data.MainNavLinks, &dtos.NavLink{
 			Text: "Data Sources",
@@ -84,7 +97,7 @@ func setIndexViewData(c *middleware.Context) (*dtos.IndexViewData, error) {
 		data.MainNavLinks = append(data.MainNavLinks, &dtos.NavLink{
 			Text: "Plugins",
 			Icon: "icon-gf icon-gf-apps",
-			Url:  setting.AppSubUrl + "/apps",
+			Url:  setting.AppSubUrl + "/plugins",
 		})
 	}
 
@@ -95,20 +108,42 @@ func setIndexViewData(c *middleware.Context) (*dtos.IndexViewData, error) {
 
 	for _, plugin := range enabledPlugins.Apps {
 		if plugin.Pinned {
-			pageLink := &dtos.NavLink{
+			appLink := &dtos.NavLink{
 				Text: plugin.Name,
-				Url:  setting.AppSubUrl + "/apps/" + plugin.Id + "/edit",
+				Url:  plugin.DefaultNavUrl,
 				Img:  plugin.Info.Logos.Small,
 			}
 
-			for _, page := range plugin.Pages {
-				pageLink.Children = append(pageLink.Children, &dtos.NavLink{
-					Url:  setting.AppSubUrl + "/apps/" + plugin.Id + "/page/" + page.Slug,
-					Text: page.Name,
-				})
+			for _, include := range plugin.Includes {
+				if !c.HasUserRole(include.Role) {
+					continue
+				}
+
+				if include.Type == "page" && include.AddToNav {
+					link := &dtos.NavLink{
+						Url:  setting.AppSubUrl + "/plugins/" + plugin.Id + "/page/" + include.Slug,
+						Text: include.Name,
+					}
+					appLink.Children = append(appLink.Children, link)
+				}
+
+				if include.Type == "dashboard" && include.AddToNav {
+					link := &dtos.NavLink{
+						Url:  setting.AppSubUrl + "/dashboard/db/" + include.Slug,
+						Text: include.Name,
+					}
+					appLink.Children = append(appLink.Children, link)
+				}
 			}
 
-			data.MainNavLinks = append(data.MainNavLinks, pageLink)
+			if c.OrgRole == m.ROLE_ADMIN {
+				appLink.Children = append(appLink.Children, &dtos.NavLink{Divider: true})
+				appLink.Children = append(appLink.Children, &dtos.NavLink{Text: "Plugin Config", Icon: "fa fa-cog", Url: setting.AppSubUrl + "/plugins/" + plugin.Id + "/edit"})
+			}
+
+			if len(appLink.Children) > 0 {
+				data.MainNavLinks = append(data.MainNavLinks, appLink)
+			}
 		}
 	}
 
@@ -117,6 +152,12 @@ func setIndexViewData(c *middleware.Context) (*dtos.IndexViewData, error) {
 			Text: "Admin",
 			Icon: "fa fa-fw fa-cogs",
 			Url:  setting.AppSubUrl + "/admin",
+			Children: []*dtos.NavLink{
+				{Text: "Global Users", Url: setting.AppSubUrl + "/admin/users"},
+				{Text: "Global Orgs", Url: setting.AppSubUrl + "/admin/orgs"},
+				{Text: "Server Settings", Url: setting.AppSubUrl + "/admin/settings"},
+				{Text: "Server Stats", Url: setting.AppSubUrl + "/admin/stats"},
+			},
 		})
 	}
 

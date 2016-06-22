@@ -14,6 +14,9 @@ function (angular, _, dateMath) {
     this.name = instanceSettings.name;
     this.withCredentials = instanceSettings.withCredentials;
     this.basicAuth = instanceSettings.basicAuth;
+    instanceSettings.jsonData = instanceSettings.jsonData || {};
+    this.tsdbVersion = instanceSettings.jsonData.tsdbVersion || 1;
+    this.tsdbResolution = instanceSettings.jsonData.tsdbResolution || 1;
     this.supportMetrics = true;
     this.tagKeys = {};
 
@@ -39,32 +42,80 @@ function (angular, _, dateMath) {
 
       var groupByTags = {};
       _.each(queries, function(query) {
-        _.each(query.tags, function(val, key) {
-          groupByTags[key] = true;
-        });
+        if (query.filters && query.filters.length > 0) {
+          _.each(query.filters, function(val) {
+            groupByTags[val.tagk] = true;
+          });
+        } else {
+          _.each(query.tags, function(val, key) {
+            groupByTags[key] = true;
+          });
+        }
       });
 
       return this.performTimeSeriesQuery(queries, start, end).then(function(response) {
-        var metricToTargetMapping = mapMetricsToTargets(response.data, options);
+        var metricToTargetMapping = mapMetricsToTargets(response.data, options, this.tsdbVersion);
         var result = _.map(response.data, function(metricData, index) {
           index = metricToTargetMapping[index];
           if (index === -1) {
             index = 0;
           }
-
           this._saveTagKeys(metricData);
 
-          return transformMetricData(metricData, groupByTags, options.targets[index], options);
+          return transformMetricData(metricData, groupByTags, options.targets[index], options, this.tsdbResolution);
         }.bind(this));
         return { data: result };
       }.bind(this));
     };
 
+    this.annotationQuery = function(options) {
+      var start = convertToTSDBTime(options.rangeRaw.from, false);
+      var end = convertToTSDBTime(options.rangeRaw.to, true);
+      var qs = [];
+      var eventList = [];
+
+      qs.push({ aggregator:"sum", metric:options.annotation.target });
+
+      var queries = _.compact(qs);
+
+      return this.performTimeSeriesQuery(queries, start, end).then(function(results) {
+        if(results.data[0]) {
+          var annotationObject = results.data[0].annotations;
+          if(options.annotation.isGlobal){
+            annotationObject = results.data[0].globalAnnotations;
+          }
+          if(annotationObject) {
+            _.each(annotationObject, function(annotation) {
+              var event = {
+                title: annotation.description,
+                time: Math.floor(annotation.startTime) * 1000,
+                text: annotation.notes,
+                annotation: options.annotation
+              };
+
+              eventList.push(event);
+            });
+          }
+        }
+        return eventList;
+
+      }.bind(this));
+    };
+
     this.performTimeSeriesQuery = function(queries, start, end) {
+      var msResolution = false;
+      if (this.tsdbResolution === 2) {
+        msResolution = true;
+      }
       var reqBody = {
         start: start,
-        queries: queries
+        queries: queries,
+        msResolution: msResolution,
+        globalAnnotations: true
       };
+      if (this.tsdbVersion === 3) {
+        reqBody.showQuery = true;
+      }
 
       // Relative queries (e.g. last hour) don't include an end time
       if (end) {
@@ -88,6 +139,7 @@ function (angular, _, dateMath) {
       // In case the backend is 3rd-party hosted and does not suport OPTIONS, urlencoded requests
       // go as POST rather than OPTIONS+POST
       options.headers = { 'Content-Type': 'application/x-www-form-urlencoded' };
+
       return backendSrv.datasourceRequest(options);
     };
 
@@ -215,7 +267,7 @@ function (angular, _, dateMath) {
     this.getAggregators = function() {
       if (aggregatorsPromise) { return aggregatorsPromise; }
 
-      aggregatorsPromise =  this._get('/api/aggregators').then(function(result) {
+      aggregatorsPromise = this._get('/api/aggregators').then(function(result) {
         if (result.data && _.isArray(result.data)) {
           return result.data.sort();
         }
@@ -224,14 +276,31 @@ function (angular, _, dateMath) {
       return aggregatorsPromise;
     };
 
-    function transformMetricData(md, groupByTags, target, options) {
+    var filterTypesPromise = null;
+    this.getFilterTypes = function() {
+      if (filterTypesPromise) { return filterTypesPromise; }
+
+      filterTypesPromise = this._get('/api/config/filters').then(function(result) {
+        if (result.data) {
+          return Object.keys(result.data).sort();
+        }
+        return [];
+      });
+      return filterTypesPromise;
+    };
+
+    function transformMetricData(md, groupByTags, target, options, tsdbResolution) {
       var metricLabel = createMetricLabel(md, target, groupByTags, options);
       var dps = [];
 
       // TSDB returns datapoints has a hash of ts => value.
       // Can't use _.pairs(invert()) because it stringifies keys/values
       _.each(md.dps, function (v, k) {
-        dps.push([v, k * 1000]);
+        if (tsdbResolution === 2) {
+          dps.push([v, k * 1]);
+        } else {
+          dps.push([v, k * 1000]);
+        }
       });
 
       return { target: metricLabel, datapoints: dps };
@@ -307,26 +376,46 @@ function (angular, _, dateMath) {
         }
       }
 
-      query.tags = angular.copy(target.tags);
-      if(query.tags){
-        for(var key in query.tags){
-          query.tags[key] = templateSrv.replace(query.tags[key], options.scopedVars);
+      if (target.filters && target.filters.length > 0) {
+        query.filters = angular.copy(target.filters);
+        if(query.filters){
+          for(var filter_key in query.filters){
+            query.filters[filter_key].filter = templateSrv.replace(query.filters[filter_key].filter, options.scopedVars, 'pipe');
+          }
+        }
+      } else {
+        query.tags = angular.copy(target.tags);
+        if(query.tags){
+          for(var tag_key in query.tags){
+            query.tags[tag_key] = templateSrv.replace(query.tags[tag_key], options.scopedVars, 'pipe');
+          }
         }
       }
 
       return query;
     }
 
-    function mapMetricsToTargets(metrics, options) {
+    function mapMetricsToTargets(metrics, options, tsdbVersion) {
       var interpolatedTagValue;
       return _.map(metrics, function(metricData) {
-        return _.findIndex(options.targets, function(target) {
-          return target.metric === metricData.metric &&
-            _.all(target.tags, function(tagV, tagK) {
-            interpolatedTagValue = templateSrv.replace(tagV, options.scopedVars);
-            return metricData.tags[tagK] === interpolatedTagValue || interpolatedTagValue === "*";
+        if (tsdbVersion === 3) {
+          return metricData.query.index;
+        } else {
+          return _.findIndex(options.targets, function(target) {
+            if (target.filters && target.filters.length > 0) {
+              return target.metric === metricData.metric &&
+              _.all(target.filters, function(filter) {
+                return filter.tagk === interpolatedTagValue === "*";
+              });
+            } else {
+              return target.metric === metricData.metric &&
+              _.all(target.tags, function(tagV, tagK) {
+                interpolatedTagValue = templateSrv.replace(tagV, options.scopedVars, 'pipe');
+                return metricData.tags[tagK] === interpolatedTagValue || interpolatedTagValue === "*";
+              });
+            }
           });
-        });
+        }
       });
     }
 

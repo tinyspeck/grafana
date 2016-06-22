@@ -27,9 +27,9 @@ em      { font-style: italic; color: $headings-color; }
 cite    { font-style: normal; }
 
 // Utility classes
-.muted               { color: $gray-2; }
+.muted               { color: $text-muted; }
 a.muted:hover,
-a.muted:focus        { color: darken($gray-2, 10%); }
+a.muted:focus        { color: darken($text-muted, 10%); }
 
 .text-warning        { color: $state-warning-text; }
 a.text-warning:hover,
@@ -65,7 +65,7 @@ h1, h2, h3, h4, h5, h6,
   color: $headings-color;
 }
 
-h1, .h1 { font-size: $font-size-h1; }
+h1, .h1 { font-size: $font-size-h1; font-style: italic; }
 h2, .h2 { font-size: $font-size-h2; }
 h3, .h3 { font-size: $font-size-h3; }
 h4, .h4 { font-size: $font-size-h4; }
@@ -114,8 +114,12 @@ hr {
 
 small,
 .small {
-  font-size: 85%;
+  font-size: $font-size-sm;
   font-weight: normal;
+}
+
+.small-xs {
+  font-size: $font-size-xs;
 }
 
 mark,
@@ -131,7 +135,6 @@ mark,
 // Unordered and Ordered lists
 ul, ol {
   padding: 0;
-  margin: 0 0 $line-height-base / 2 25px;
 }
 ul ul,
 ul ol,
