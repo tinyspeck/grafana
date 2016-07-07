@@ -52,18 +52,19 @@ function expand_metrics(query){
   return graphite_request('/metrics/expand', ['query=' + query]);
 };
 
+function find_leafs(query){
+  return expand_metrics(query + '&leavesOnly=1');
+}
+
 function find_all_metrics(query){
   var deferred = $.Deferred();
-  find_metrics(query).then(function(paths) {
-    var leaves = _.filter(paths, function(x) { return x['leaf'] });
-    var non_leaves = _.filter(paths, function(x) { return !x['leaf'] });
-    if (_.isEmpty(non_leaves)) {
-      deferred.resolve(leaves);
-    } else {
-      $.when.apply($, _.map(non_leaves, function(x) { return find_all_metrics(x['id'] + '.*') })).done(function(x) {
-        deferred.resolve(leaves.concat(x));
-      });
-    }
+  var reqs = _.map([query+'.*', query+'.*.*', query+'.*.*.*', query+'.*.*.*.*' ], function(x) { return find_leafs(x); })
+  $.when.apply($, reqs).done(function() {
+    var metrics = [];
+    _.each(arguments, function(x) {
+      metrics = metrics.concat(x['results'])
+    });
+    deferred.resolve(metrics);
   });
   return deferred.promise();
 };
@@ -104,22 +105,37 @@ return function(callback) {
   dashboard.title = host;
   dashboard.editable = true;
 
-  expand_metrics(prefix + '.*').then(function(req) {
-    var results = _.reject(req['results'], function(metric){ return _.contains(metric, 'statsite') && _.contains(['www', 'job_queue', 'dev', 'staging'], metric.split('.')[2])});
+  find_all_metrics(prefix).then(function(metrics) {
+    var results = _.reject(metrics, function(metric){ return _.contains(metric, 'statsite') && _.contains(['www', 'job_queue', 'dev', 'staging'], metric.split('.')[2])});
 
-    results = _.uniq(_.map(results, function(metric) { return prefix + "." + metric.split('.')[4] }))
+    // Row titles are based on the 4th component of the
+    // metric name.
+    var rows = [];
+    _.each(results, function(x) {
+      var title = x.split('.')[4];
+      var panelName = x.split('.').slice(4).join('.');
 
-    var promises = _.map(results, function(row) { return find_all_metrics(row) });
-    $.when.apply($, promises).done(function() {
-      for (var index = 0; index < results.length; index++) {
-        var metric = results[index];
-        dashboard.rows.push({
-          title: metric.split('.').slice(-1)[0],
-          panels: _.map(arguments[index], function(x) { return default_panel(x['text'], x['id'], host) }),
-          collapse: true,
-        });
+      if (title.startsWith('kv')) {
+        title = panelName.split('.')[2];
+        panelName = panelName.split('.').slice(3).join('.');
+      } else if (x.startsWith('graphite')) {
+        title = x.split('.')[2];
+        panelName = x.split('.').slice(4).join('.');
       }
-      callback(dashboard)
+
+      if (!_.has(rows, title)) {
+        rows[title] = [];
+      }
+      rows[title].push({'metric': x, 'panelName': panelName});
     });
+
+    _.each(_.keys(rows), function(row) {
+      dashboard.rows.push({
+        title: row,
+        panels: _.map(rows[row], function(x) { return default_panel(x['panelName'], x['metric'], host) }),
+        collapse: true,
+      });
+    });
+    callback(dashboard)
   });
 }
