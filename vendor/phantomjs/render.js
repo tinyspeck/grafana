@@ -45,7 +45,7 @@
         if (!rootScope) {return false;}
         if (!rootScope.performance) { return false; }
         var panelsToLoad = window.angular.element('div.panel').length;
-        return rootScope.performance.panelsRendered >= panelsToLoad;
+        return panelsToLoad > 0 && rootScope.performance.panelsRendered >= panelsToLoad;
       });
 
       if (canvas || tries === 1000) {
