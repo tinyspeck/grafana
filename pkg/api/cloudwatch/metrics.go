@@ -86,7 +86,7 @@ func init() {
 		"AWS/EBS":              {"VolumeId"},
 		"AWS/EC2":              {"AutoScalingGroupName", "ImageId", "InstanceId", "InstanceType"},
 		"AWS/ELB":              {"LoadBalancerName", "AvailabilityZone"},
-		"AWS/ApplicationELB":   {"LoadBalancerName", "AvailabilityZone"},
+		"AWS/ApplicationELB":   {"LoadBalancer", "AvailabilityZone"},
 		"AWS/ElasticMapReduce": {"ClusterId", "JobFlowId", "JobId"},
 		"AWS/ES":               {"ClientId", "DomainName"},
 		"AWS/Events":           {"RuleName"},
