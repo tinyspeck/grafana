@@ -1,3 +1,5 @@
+alert('1');
+
 var metrics = [
 'java_mem_mb',
 'java_cpu',
