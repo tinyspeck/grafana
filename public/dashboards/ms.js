@@ -364,7 +364,7 @@ function topRow(hostName) {
 
 function aggreagateRow() {
 	var row = {
-    	title: 'Aggreagate',
+    	title: 'Aggregate',
     	height: '300px',
     	showTitle: true,
     	panels: [
@@ -395,8 +395,12 @@ function aggreagateRow() {
           			},
         		],
         		tooltip: {
-          			shared: true
+          			shared: false
         		}
+				,
+				legend: {
+					show: false
+				}
       		}
 
     ] // panels
