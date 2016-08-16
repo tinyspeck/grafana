@@ -152,7 +152,7 @@ function createHostGraph(hostName) {
 	};
 
 
-	var targetValue = "*.*.dev-ms." + hostName + "." + '$current_metric';
+	var targetValue = "*.*.*ms." + hostName + "." + '$current_metric';
 
 	var target = {};
 
@@ -181,7 +181,7 @@ function createMetricGraph(hostName, metric) {
 	};
 
 
-	var targetValue = "aliasByNode(*.*.dev-ms." + hostName + "." + metric+",3)";
+	var targetValue = "aliasByNode(*.*.*ms." + hostName + "." + metric+",3)";
 
 	var target = {};
 
@@ -208,7 +208,7 @@ function clusterRow() {
         		linewidth: 2,
         		targets: [
           			{
-	    				"target": "groupByNode(*.*.dev-ms.ms*.load.load.*, 6, 'sum')"
+	    				"target": "groupByNode(*.*.*ms.ms*.load.load.*, 6, 'sum')"
           			},
         		],
         		tooltip: {
@@ -291,7 +291,7 @@ function topRow(hostName) {
         		linewidth: 2,
         		targets: [
           			{
-	    				"target": "groupByNode(*.*.dev-ms."+hostName+".load.load.*, 6, 'sum')"
+	    				"target": "groupByNode(*.*.*ms."+hostName+".load.load.*, 6, 'sum')"
           			},
         		],
         		tooltip: {
@@ -389,7 +389,7 @@ function aggreagateRow() {
         		linewidth: 2,
         		targets: [
           			{
-	    				"target": "aliasByNode(*.*.dev-ms.ms*.$current_metric, 3)"
+	    				"target": "aliasByNode(*.*.*ms.ms*.$current_metric, 3)"
           			},
         		],
         		tooltip: {
@@ -479,7 +479,7 @@ hosts_row = {
         linewidth: 2,
         targets: [
           {
-	    "target": "*.*.dev-ms.ms-dev7.$current_metric"
+	    "target": "*.*.*ms.ms-dev7.$current_metric"
           },
         ],
         tooltip: {
@@ -490,7 +490,7 @@ hosts_row = {
 };
 
 
-var hosts = find_filter_values('*.*.dev-ms.ms*');
+var hosts = find_filter_values('*.*.*ms.ms*');
 
 
 var panels = [];
