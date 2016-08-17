@@ -393,7 +393,18 @@ function topRow(hostName) {
 } //clusterRow
 
 
-function aggreagateRow() {
+function aggregateRow() {
+
+    var stacked = true;
+
+    if(!_.isUndefined(ARGS.stack)) {
+        if (ARGS.stack!="true") {
+            stacked = false;
+        }
+    }
+
+    var urlParam = !stacked;
+
 	var row = {
     	title: 'Aggregate',
     	height: '300px',
@@ -418,7 +429,7 @@ function aggreagateRow() {
         		renderer: 'png',
         		span: 6,
 				height: 500,
-				stack: true,
+				stack: stacked,
         		fill: 1,
         		linewidth: 2,
         		targets: [
@@ -433,6 +444,16 @@ function aggreagateRow() {
 				legend: {
 					show: false
 				}
+				,
+				links: [
+				    {
+                          "type": "absolute",
+                          "includeVars": true,
+                          "title": "unstacked",
+                          "params": "stack="+urlParam,
+                          "url": "dashboard/script/ms.js"
+                    }
+				]
       		}
 
     ] // panels
@@ -466,7 +487,7 @@ function frontPage() {
 	};
 
   dashboard.rows.push(clusterRow());
-  dashboard.rows.push(aggreagateRow());
+  dashboard.rows.push(aggregateRow());
 
 var options = [];
 
@@ -500,6 +521,7 @@ dashboard.templating =  {
         "regex": "",
         "type": "custom"
       }
+
     ]
   };
 
@@ -647,18 +669,3 @@ else {
 	return frontPage();
 }
 
-
-/*
-[
-          {
-            "text": "java_mem_mb",
-            "value": "java_mem_mb",
-            "selected": true
-          },
-          {
-            "text": "java_cpu",
-            "value": "java_cpu",
-            "selected": false
-          }
-        ],
-*/
