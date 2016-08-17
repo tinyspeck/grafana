@@ -449,7 +449,7 @@ function aggregateRow() {
 				    {
                           "type": "absolute",
                           "includeVars": true,
-                          "title": "unstacked",
+                          "title": stacked?"unstacked":"stacked",
                           "params": "stack="+urlParam,
                           "url": "dashboard/script/ms.js"
                     }
