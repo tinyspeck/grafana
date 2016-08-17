@@ -1,93 +1,89 @@
-alert('1');
-
-var metrics = [
-'java_mem_mb',
-'java_cpu',
-'ms_queue_size',
-'http_callbacks_completed',
-'http_callbacks_avg_time_millis',
-'java_gc_count',
-'java_gc_time_ms',
-'mobile_connections',
-'ios_connections',
-'android_connections',
-'gateway_connections',
-'total_pending_ops',
-'total_pending_bytes',
-'proxy_to_ms_connects_failed',
-'token_ages_millis_500',
-'token_ages_millis_800',
-'token_ages_millis_950',
-'token_ages_millis_990',
-'ping_reply_millis_500',
-'ping_reply_millis_800',
-'ping_reply_millis_950',
-'ping_reply_millis_990',
-'http_call_latency_millis_500',
-'http_call_latency_millis_800',
-'http_call_latency_millis_950',
-'http_call_latency_millis_990',
-'messages_received',
-'messages_sent',
-'messages_team_bytes',
-'user_messages_sent',
-'bot_messages_received',
-'bot_messages_sent',
-'bot_user_messages_sent',
-'messages_dropped',
-'prx_frames_received',
-'prx_frames_sent',
-'admin_calls',
-'socket_connects',
-'socket_disconnects',
-'client_connects',
-'client_disconnects',
-'websocket_errors',
-'dropped_connections',
-'login_requests',
-'http_callback_errors',
-'rl_soft_limit_users',
-'rl_messages_dropped',
-'rl_disconnects',
-'tokens_issued',
-'expired_tokens_presented',
-'tokens_presented',
-'unretrieved_tokens',
-'fast_reconnect_tokens_accepted',
-'fast_reconnect_tokens_rejected',
-'regular_pings',
-'shortcut_pings',
-'rejected_proxy_reconnects',
-'total_users',
-'active_users',
-'active5_users',
-'bot_users',
-'user_messages_perc900',
-'user_messages_perc990',
-'user_messages_perc999',
-'java_old_gen_size',
-'java_old_gen_commited',
-'java_old_gen_perc_used',
-'java_old_gen_peak_size',
-'java_old_gen_coll_size',
-'java_old_gen_coll_perc_used',
-'jvm_minor_faults',
-'jvm_major_faults',
-'jvm_num_threads',
-'jvm_vsize_kb',
-'jvm_rss_kb',
-'jvm_vsize_delta_kb',
-'jvm_rss_delta_kb',
-'jvm_fd_open_count',
-'jvm_fd_perc_used',
-'total_teams',
-'total_channels',
-'total_groups',
-'total_dms',
-'total_all_channels'
-];
-
-
+var metrics = 
+[{"metric":"active5_users"},
+ {"metric":"active_users"},
+ {"metric":"admin_calls"},
+ {"metric":"android_connections"},
+ {"metric":"bot_messages_received"},
+ {"metric":"bot_messages_sent"},
+ {"metric":"bot_users"},
+ {"metric":"bot_user_messages_sent"},
+ {"metric":"client_connects"},
+ {"metric":"client_disconnects"},
+ {"metric":"dropped_connections"},
+ {"metric":"expired_tokens_presented"},
+ {"metric":"fast_reconnect_tokens_accepted"},
+ {"metric":"fast_reconnect_tokens_rejected"},
+ {"metric":"gateway_connections"},
+ {"metric":"http_callbacks_avg_time_millis"},
+ {"metric":"http_callbacks_completed"},
+ {"metric":"http_callback_errors"},
+ {"metric":"http_call_latency_millis_500"},
+ {"metric":"http_call_latency_millis_800"},
+ {"metric":"http_call_latency_millis_950"},
+ {"metric":"http_call_latency_millis_990"},
+ {"metric":"ios_connections"},
+ {"metric":"java_cpu"},
+ {"metric":"java_gc_count"},
+ {"metric":"java_gc_time_ms"},
+ {"metric":"java_mem_mb"},
+ {"metric":"java_old_gen_coll_perc_used"},
+ {"metric":"java_old_gen_coll_size"},
+ {"metric":"java_old_gen_commited", "format":"bytes", "min":0},
+ {"metric":"java_old_gen_peak_size", "format":"bytes", "min":0},
+ {"metric":"java_old_gen_perc_used"},
+ {"metric":"java_old_gen_size"},
+ {"metric":"jvm_fd_open_count"},
+ {"metric":"jvm_fd_perc_used"},
+ {"metric":"jvm_major_faults"},
+ {"metric":"jvm_minor_faults"},
+ {"metric":"jvm_num_threads"},
+ {"metric":"jvm_rss_delta_kb"},
+ {"metric":"jvm_rss_kb", "min":0},
+ {"metric":"jvm_vsize_delta_kb"},
+ {"metric":"jvm_vsize_kb", min:0},
+ {"metric":"login_requests"},
+ {"metric":"messages_dropped"},
+ {"metric":"messages_received"},
+ {"metric":"messages_sent"},
+ {"metric":"messages_team_bytes"},
+ {"metric":"mobile_connections"},
+ {"metric":"ms_queue_size"},
+ {"metric":"ping_reply_millis_500"},
+ {"metric":"ping_reply_millis_800"},
+ {"metric":"ping_reply_millis_950"},
+ {"metric":"ping_reply_millis_990"},
+ {"metric":"proxy_to_ms_connects_failed"},
+ {"metric":"prx_frames_received"},
+ {"metric":"prx_frames_sent"},
+ {"metric":"regular_pings"},
+ {"metric":"rejected_proxy_reconnects"},
+ {"metric":"rl_disconnects"},
+ {"metric":"rl_messages_dropped"},
+ {"metric":"rl_soft_limit_users"},
+ {"metric":"shortcut_pings"},
+ {"metric":"socket_connects"},
+ {"metric":"socket_disconnects"},
+ {"metric":"tokens_issued"},
+ {"metric":"tokens_presented"},
+ {"metric":"token_ages_millis_500"},
+ {"metric":"token_ages_millis_800"},
+ {"metric":"token_ages_millis_950"},
+ {"metric":"token_ages_millis_990"},
+ {"metric":"total_all_channels"},
+ {"metric":"total_channels"},
+ {"metric":"total_dms"},
+ {"metric":"total_groups"},
+ {"metric":"total_pending_bytes"},
+ {"metric":"total_pending_ops"},
+ {"metric":"total_teams"},
+ {"metric":"total_users"},
+ {"metric":"unretrieved_tokens"},
+ {"metric":"user_messages_perc900"},
+ {"metric":"user_messages_perc990"},
+ {"metric":"user_messages_perc999"},
+ {"metric":"user_messages_sent"},
+ {"metric":"websocket_errors"}]
+;
 
 /* global _ */
 
@@ -134,13 +130,14 @@ function find_filter_values(query){
 function createHostGraph(hostName) {
 	var hostGraph = 
       	{
-	title: hostName,
+	    title: hostName,
         type: 'graph',
+        renderer: 'png',
         span: 3,
         fill: 1,
         linewidth: 2,
         targets: [],
-	links: [
+	    links: [
 		{
 		keepTime: true,
               params: "host="+hostName,
@@ -169,25 +166,51 @@ function createHostGraph(hostName) {
 function createMetricGraph(hostName, metric) {
 	var graph = 
       	{
-	title: metric,
+	    title: metric.metric,
         type: 'graph',
+        renderer: 'png',
         span: 3,
         fill: 1,
         linewidth: 2,
         targets: [],
-	links: [
-	]
-	,
-	legend: {show:false}
-
+	    links: [
+	    ]
+	    ,
+	    legend: {show:false},
+	    yaxes: [
+	            {
+                  "label": "",
+                  "show": true,
+                  "logBase": 1,
+                  "min": null,
+                  "max": null,
+                  "format": "short"
+                },
+	            {
+                  "label": "",
+                  "show": true,
+                  "logBase": 1,
+                  "min": null,
+                  "max": null,
+                  "format": "short"
+                }
+        ]
 	};
 
 
-	var targetValue = "aliasByNode(*.*.*ms." + hostName + "." + metric+",3)";
+	var targetValue = "aliasByNode(*.*.*ms." + hostName + "." + metric.metric+",3)";
 
 	var target = {};
 
 	target["target"] = targetValue;
+
+    if (!(metric.format===undefined)) {
+        graph.yaxes[0].format = metric.format;
+    }
+
+    if (!(metric.min===undefined)) {
+        graph.yaxes[0].min = metric.min;
+    }
 
 	graph.targets.push(target);
 
@@ -205,6 +228,7 @@ function clusterRow() {
       		{
         		title: 'Load average',
         		type: 'graph',
+        		renderer: 'png',
         		span: 3,
         		fill: 1,
         		linewidth: 2,
@@ -221,6 +245,7 @@ function clusterRow() {
       		{
         		title: 'Memory',
         		type: 'graph',
+        		renderer: 'png',
         		span: 3,
         		fill: 1,
         		linewidth: 2,
@@ -238,6 +263,7 @@ function clusterRow() {
       		{
         		title: 'CPU',
         		type: 'graph',
+        		renderer: 'png',
         		span: 3,
         		fill: 1,
         		linewidth: 2,
@@ -256,6 +282,7 @@ function clusterRow() {
       		{
         		title: 'eth0 packets',
         		type: 'graph',
+        		renderer: 'png',
         		span: 3,
         		fill: 1,
         		linewidth: 2,
@@ -288,6 +315,7 @@ function topRow(hostName) {
       		{
         		title: 'Load average',
         		type: 'graph',
+        		renderer: 'png',
         		span: 3,
         		fill: 1,
         		linewidth: 2,
@@ -304,6 +332,7 @@ function topRow(hostName) {
       		{
         		title: 'Memory',
         		type: 'graph',
+        		renderer: 'png',
         		span: 3,
         		fill: 1,
         		linewidth: 2,
@@ -321,6 +350,7 @@ function topRow(hostName) {
       		{
         		title: 'CPU',
         		type: 'graph',
+        		renderer: 'png',
         		span: 3,
         		fill: 1,
         		linewidth: 2,
@@ -339,6 +369,7 @@ function topRow(hostName) {
       		{
         		title: 'eth0 packets',
         		type: 'graph',
+        		renderer: 'png',
         		span: 3,
         		fill: 1,
         		linewidth: 2,
@@ -384,6 +415,7 @@ function aggreagateRow() {
       		{
         		title: "Aggregate $current_metric",
         		type: 'graph',
+        		renderer: 'png',
         		span: 6,
 				height: 500,
 				stack: true,
@@ -438,14 +470,16 @@ function frontPage() {
 
 var options = [];
 
- /*
-for (var j in metrics) {
-	var option = {text:metrics[j], value:metrics[j]};
-	dashboard.templating.list.options.push(option);
-} 
-*/
 
-var query = metrics.join(',');
+var metricArray = [];
+
+for (var j in metrics) {
+	var record = metrics[j];
+	metricArray.push(record.metric);
+} 
+
+
+var query = metricArray.join(',');
 
 dashboard.templating =  {
     "list": [
@@ -480,6 +514,7 @@ hosts_row = {
       {
         title: 'Average load',
         type: 'graph',
+        renderer: 'png',
         span: 3,
         fill: 1,
         linewidth: 2,
@@ -597,28 +632,6 @@ function hostPage(hostName) {
 		
 		var graph = createMetricGraph(hostName, metric);
 
-		if (metric=="java_old_gen_commited") {
-			graph.yaxes = [
-    {
-      "label": "",
-      "show": true,
-      "logBase": 1,
-      "min": 0,
-      "max": null,
-      "format": "bytes"
-    },
-    {
-      "label": null,
-      "show": false,
-      "logBase": 1,
-      "min": null,
-      "max": null,
-      "format": "bytes"
-    }
-		];
-
-			//alert(graph.yaxes);
-		 }
 
 		dashboard.rows[1].panels.push(graph);
 
