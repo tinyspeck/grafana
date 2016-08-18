@@ -140,7 +140,7 @@ function createHostGraph(hostName) {
         type: 'graph',
         renderer: graphType,
         span: 3,
-        fill: 1,
+        fill: 4,
         linewidth: 2,
         targets: [],
 	    links: [
@@ -176,7 +176,7 @@ function createMetricGraph(hostName, metric) {
         type: 'graph',
         renderer: graphType,
         span: 3,
-        fill: 1,
+        fill: 4,
         linewidth: 2,
         targets: [],
 	    links: [
@@ -326,7 +326,7 @@ function topRow(hostName, title) {
         		type: 'graph',
         		renderer: graphType,
         		span: 3,
-        		fill: 1,
+        		fill: 4,
         		linewidth: 2,
         		targets: [
           			{
@@ -343,7 +343,7 @@ function topRow(hostName, title) {
         		type: 'graph',
         		renderer: graphType,
         		span: 3,
-        		fill: 1,
+        		fill: 4,
         		linewidth: 2,
         		targets: [
           			{
@@ -370,7 +370,7 @@ function topRow(hostName, title) {
         		type: 'graph',
         		renderer: graphType,
         		span: 3,
-        		fill: 1,
+        		fill: 4,
         		linewidth: 2,
         		targets: [
           			{
@@ -389,7 +389,7 @@ function topRow(hostName, title) {
         		type: 'graph',
         		renderer: graphType,
         		span: 3,
-        		fill: 1,
+        		fill: 4,
         		linewidth: 2,
         		targets: [
           			{
@@ -408,7 +408,7 @@ function topRow(hostName, title) {
                     		type: 'graph',
                     		renderer: graphType,
                     		span: 3,
-                    		fill: 1,
+                    		fill: 4,
                     		linewidth: 2,
                     		targets: [
                       			{
@@ -469,7 +469,7 @@ function aggregateRow() {
         		span: 6,
 				height: 500,
 				stack: true,
-        		fill: 1,
+        		fill: 4,
         		linewidth: 2,
         		targets: [
           			{
@@ -506,7 +506,7 @@ function aggregateRow() {
                     		span: 6,
             				height: 500,
             				stack: false,
-                    		fill: 1,
+                    		fill: 4,
                     		linewidth: 2,
                     		targets: [
                       			{
@@ -617,7 +617,7 @@ hosts_row = {
         type: 'graph',
         renderer: graphType,
         span: 3,
-        fill: 1,
+        fill: 4,
         linewidth: 2,
         targets: [
           {
