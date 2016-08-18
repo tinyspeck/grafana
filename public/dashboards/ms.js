@@ -106,6 +106,12 @@ var window, document, ARGS, $, jQuery, moment, kbn;
 // All url parameters are available via the ARGS object
 var ARGS;
 
+var graphType = "flot";
+
+if(!_.isUndefined(ARGS.png)) {
+    graphType = "png";
+}
+
 function find_filter_values(query){
     var search_url = window.location.protocol + '//' + window.location.host + '/api/datasources/proxy/1/metrics/find/?query=' + query;
     var res = [];
@@ -132,7 +138,7 @@ function createHostGraph(hostName) {
       	{
 	    title: hostName,
         type: 'graph',
-        renderer: 'png',
+        renderer: graphType,
         span: 3,
         fill: 1,
         linewidth: 2,
@@ -168,7 +174,7 @@ function createMetricGraph(hostName, metric) {
       	{
 	    title: metric.metric,
         type: 'graph',
-        renderer: 'png',
+        renderer: graphType,
         span: 3,
         fill: 1,
         linewidth: 2,
@@ -218,6 +224,7 @@ function createMetricGraph(hostName, metric) {
 
 } // createMetricGraph
 
+/*
 function clusterRow() {
 
 	var row = {
@@ -228,7 +235,7 @@ function clusterRow() {
       		{
         		title: 'Load average',
         		type: 'graph',
-        		renderer: 'png',
+        		renderer: graphType,
         		span: 3,
         		fill: 1,
         		linewidth: 2,
@@ -245,7 +252,7 @@ function clusterRow() {
       		{
         		title: 'Memory',
         		type: 'graph',
-        		renderer: 'png',
+        		renderer: graphType,
         		span: 3,
         		fill: 1,
         		linewidth: 2,
@@ -263,7 +270,7 @@ function clusterRow() {
       		{
         		title: 'CPU',
         		type: 'graph',
-        		renderer: 'png',
+        		renderer: graphType,
         		span: 3,
         		fill: 1,
         		linewidth: 2,
@@ -282,7 +289,7 @@ function clusterRow() {
       		{
         		title: 'eth0 packets',
         		type: 'graph',
-        		renderer: 'png',
+        		renderer: graphType,
         		span: 3,
         		fill: 1,
         		linewidth: 2,
@@ -305,17 +312,19 @@ function clusterRow() {
 
 } //clusterRow
 
-function topRow(hostName) {
+*/
+
+function topRow(hostName, title) {
 
 	var row = {
-    	title: hostName+' top metrics',
+    	title: title,
     	height: '300px',
     	showTitle: true,
     	panels: [
       		{
         		title: 'Load average',
         		type: 'graph',
-        		renderer: 'png',
+        		renderer: graphType,
         		span: 3,
         		fill: 1,
         		linewidth: 2,
@@ -332,13 +341,22 @@ function topRow(hostName) {
       		{
         		title: 'Memory',
         		type: 'graph',
-        		renderer: 'png',
+        		renderer: graphType,
         		span: 3,
         		fill: 1,
         		linewidth: 2,
         		targets: [
           			{
-	    				"target": "groupByNode(*.*.*."+hostName+".memory.*, 5, 'sum')"
+	    				"target": "groupByNode(*.*.*."+hostName+".memory.memory-buffered, 5, 'sum')"
+          			},
+          			{
+	    				"target": "groupByNode(*.*.*."+hostName+".memory.memory-cached, 5, 'sum')"
+          			},
+          			{
+	    				"target": "groupByNode(*.*.*."+hostName+".memory.memory-free, 5, 'sum')"
+          			},
+          			{
+	    				"target": "groupByNode(*.*.*."+hostName+".memory.memory-used, 5, 'sum')"
           			},
         		],
         		tooltip: {
@@ -350,7 +368,7 @@ function topRow(hostName) {
       		{
         		title: 'CPU',
         		type: 'graph',
-        		renderer: 'png',
+        		renderer: graphType,
         		span: 3,
         		fill: 1,
         		linewidth: 2,
@@ -369,7 +387,7 @@ function topRow(hostName) {
       		{
         		title: 'eth0 packets',
         		type: 'graph',
-        		renderer: 'png',
+        		renderer: graphType,
         		span: 3,
         		fill: 1,
         		linewidth: 2,
@@ -383,6 +401,26 @@ function topRow(hostName) {
         		}
       		}
 
+            ,
+
+                  		{
+                    		title: 'eth0 octets',
+                    		type: 'graph',
+                    		renderer: graphType,
+                    		span: 3,
+                    		fill: 1,
+                    		linewidth: 2,
+                    		targets: [
+                      			{
+            	    				"target": "groupByNode(collectd.*.*."+hostName+".interface-eth0.if_octets.*, 6, 'sum')"
+                      			},
+                    		],
+                    		tooltip: {
+                      			shared: true
+                    		}
+                  		}
+
+
     ] // panels
 
   
@@ -390,15 +428,27 @@ function topRow(hostName) {
 
 	return row;
 
-} //clusterRow
+} //topRow
 
 
-function aggreagateRow() {
+function aggregateRow() {
+
+    var stacked = true;
+
+    if(!_.isUndefined(ARGS.stack)) {
+        if (ARGS.stack!="true") {
+            stacked = false;
+        }
+    }
+
+    var urlParam = !stacked;
+
 	var row = {
     	title: 'Aggregate',
     	height: '300px',
     	showTitle: true,
     	panels: [
+    	/*
 		{
           "title": "",
           "error": false,
@@ -411,11 +461,11 @@ function aggreagateRow() {
           "content": "",
           "links": [],
           "transparent": true
-        },
+        },*/
       		{
-        		title: "Aggregate $current_metric",
+        		title: "Aggregate (stacked) $current_metric",
         		type: 'graph',
-        		renderer: 'png',
+        		renderer: graphType,
         		span: 6,
 				height: 500,
 				stack: true,
@@ -433,7 +483,57 @@ function aggreagateRow() {
 				legend: {
 					show: false
 				}
+
+				/*,
+				links: [
+				    {
+                          "type": "absolute",
+                          "includeVars": true,
+                          "title": stacked?"unstacked":"stacked",
+                          "params": "stack="+urlParam,
+                          "url": "dashboard/script/ms.js"
+                    }
+				]
+				*/
       		}
+
+            ,
+
+                  		{
+                    		title: "Aggregate $current_metric",
+                    		type: 'graph',
+                    		renderer: graphType,
+                    		span: 6,
+            				height: 500,
+            				stack: false,
+                    		fill: 1,
+                    		linewidth: 2,
+                    		targets: [
+                      			{
+            	    				"target": "aliasByNode(*.*.*ms.ms*.$current_metric, 3)"
+                      			},
+                    		],
+                    		tooltip: {
+                      			shared: false
+                    		}
+            				,
+            				legend: {
+            					show: false
+            				}
+            				/*
+            				,
+            				links: [
+            				    {
+                                      "type": "absolute",
+                                      "includeVars": true,
+                                      "title": stacked?"unstacked":"stacked",
+                                      "params": "stack="+urlParam,
+                                      "url": "dashboard/script/ms.js"
+                                }
+            				]
+            				*/
+                  		}
+
 
     ] // panels
 
@@ -450,8 +550,8 @@ function frontPage() {
 
 	// Intialize a skeleton with nothing but a rows array and service object
 	dashboard = {
-		editable:false,
-  	rows : [],
+		editable:true,
+  	    rows : [],
 	};
 
 	// Set a title
@@ -465,8 +565,8 @@ function frontPage() {
   		to: "now"
 	};
 
-  dashboard.rows.push(clusterRow());
-  dashboard.rows.push(aggreagateRow());
+  dashboard.rows.push(topRow("ms*", "Cluster"));
+  dashboard.rows.push(aggregateRow());
 
 var options = [];
 
@@ -500,6 +600,7 @@ dashboard.templating =  {
         "regex": "",
         "type": "custom"
       }
+
     ]
   };
 
@@ -514,7 +615,7 @@ hosts_row = {
       {
         title: 'Average load',
         type: 'graph',
-        renderer: 'png',
+        renderer: graphType,
         span: 3,
         fill: 1,
         linewidth: 2,
@@ -547,7 +648,7 @@ for (var i in hosts) {
           "title": "",
           "error": false,
           "span": 12,
-          "editable": false,
+          "editable": true,
           "type": "text",
           "isNew": true,
           "mode": "text",
@@ -581,9 +682,9 @@ function hostPage(hostName) {
 
 	// Intialize a skeleton with nothing but a rows array and service object
 	dashboard = {
-		editable:false,
+		editable:true,
   		rows : [
-			topRow(hostName),
+			topRow(hostName, hostName+' top metrics'),
 			{    
 				title: hostName,
 			    showTitle: true,
@@ -615,7 +716,7 @@ function hostPage(hostName) {
           "title": "",
           "error": false,
           "span": 12,
-          "editable": false,
+          "editable": true,
           "type": "text",
           "isNew": true,
           "mode": "text",
@@ -647,18 +748,3 @@ else {
 	return frontPage();
 }
 
-
-/*
-[
-          {
-            "text": "java_mem_mb",
-            "value": "java_mem_mb",
-            "selected": true
-          },
-          {
-            "text": "java_cpu",
-            "value": "java_cpu",
-            "selected": false
-          }
-        ],
-*/
