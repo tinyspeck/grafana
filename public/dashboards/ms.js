@@ -146,7 +146,7 @@ function createHostGraph(hostName) {
 	    links: [
 		{
 		keepTime: true,
-              params: "host="+hostName,
+              params: "host="+hostName+"&"+graphType,
               targetBlank: true,
               title: "click here to view all metrics",
               type: "absolute",
@@ -696,7 +696,7 @@ function hostPage(hostName) {
       		"icon": "external link",
       		"tags": [],
       		"type": "link",
-      		"url": "dashboard/script/ms.js",
+      		"url": "dashboard/script/ms.js?"+graphType,
 			"title": "Cluster overview"
 			}]    		
 
