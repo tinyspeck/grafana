@@ -47,10 +47,11 @@ var (
 	BuildStamp   int64
 
 	// Paths
-	LogsPath    string
-	HomePath    string
-	DataPath    string
-	PluginsPath string
+	LogsPath        string
+	HomePath        string
+	DataPath        string
+	PluginsPath     string
+	GraphiteMetrics string
 
 	// Log settings.
 	LogModes   []string
@@ -344,6 +345,9 @@ func loadConfiguration(args *CommandLineArgs) {
 	// update data path and logging config
 	DataPath = makeAbsolute(Cfg.Section("paths").Key("data").String(), HomePath)
 	initLogging(args)
+
+	// graphite metrics file, for metrics exploration
+	GraphiteMetrics = makeAbsolute(Cfg.Section("paths").Key("graphite_metrics").String(), HomePath)
 }
 
 func pathExists(path string) bool {

@@ -236,6 +236,9 @@ func Register(r *macaron.Macaron) {
 		// metrics
 		r.Get("/metrics/test", GetTestMetrics)
 
+		// metrics exploration
+		r.Get("/metrics/explore", wrap(ExploreMetrics))
+
 	}, reqSignedIn)
 
 	// admin api
