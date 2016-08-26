@@ -14,6 +14,7 @@ function setupAngularRoutes($routeProvider, $locationProvider) {
   var loadPluginsBundle = new BundleLoader('app/features/plugins/all');
   var loadAdminBundle = new BundleLoader('app/features/admin/admin');
   var loadHostsBundle = new BundleLoader('app/features/hosts/all');
+  var loadMetricsExploreBundle = new BundleLoader('app/features/metrics_explore/all');
 
   $routeProvider
   .when('/', {
@@ -77,6 +78,11 @@ function setupAngularRoutes($routeProvider, $locationProvider) {
     templateUrl: 'public/app/features/hosts/partials/hosts.html',
     controller : 'HostsCtrl',
     resolve: loadHostsBundle,
+  })
+  .when('/explore', {
+    templateUrl: 'public/app/features/metrics_explore/partials/metrics_explore.html',
+    controller : 'MetricsExploreCtrl',
+    resolve: loadMetricsExploreBundle,
   })
   .when('/org', {
     templateUrl: 'public/app/features/org/partials/orgDetails.html',
