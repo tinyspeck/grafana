@@ -1,27 +1,5 @@
 var metrics = 
-[{"metric":"active5_users"},
- {"metric":"active_users"},
- {"metric":"admin_calls"},
- {"metric":"android_connections"},
- {"metric":"bot_messages_received"},
- {"metric":"bot_messages_sent"},
- {"metric":"bot_users"},
- {"metric":"bot_user_messages_sent"},
- {"metric":"client_connects"},
- {"metric":"client_disconnects"},
- {"metric":"dropped_connections"},
- {"metric":"expired_tokens_presented"},
- {"metric":"fast_reconnect_tokens_accepted"},
- {"metric":"fast_reconnect_tokens_rejected"},
- {"metric":"gateway_connections"},
- {"metric":"http_callbacks_avg_time_millis"},
- {"metric":"http_callbacks_completed"},
- {"metric":"http_callback_errors"},
- {"metric":"http_call_latency_millis_500"},
- {"metric":"http_call_latency_millis_800"},
- {"metric":"http_call_latency_millis_950"},
- {"metric":"http_call_latency_millis_990"},
- {"metric":"ios_connections"},
+[
  {"metric":"java_cpu"},
  {"metric":"java_gc_count"},
  {"metric":"java_gc_time_ms"},
@@ -40,49 +18,8 @@ var metrics =
  {"metric":"jvm_rss_delta_kb"},
  {"metric":"jvm_rss_kb", "min":0},
  {"metric":"jvm_vsize_delta_kb"},
- {"metric":"jvm_vsize_kb", min:0},
- {"metric":"login_requests"},
- {"metric":"messages_dropped"},
- {"metric":"messages_received"},
- {"metric":"messages_sent"},
- {"metric":"messages_team_bytes"},
- {"metric":"mobile_connections"},
- {"metric":"ms_queue_size"},
- {"metric":"ping_reply_millis_500"},
- {"metric":"ping_reply_millis_800"},
- {"metric":"ping_reply_millis_950"},
- {"metric":"ping_reply_millis_990"},
- {"metric":"proxy_to_ms_connects_failed"},
- {"metric":"prx_frames_received"},
- {"metric":"prx_frames_sent"},
- {"metric":"regular_pings"},
- {"metric":"rejected_proxy_reconnects"},
- {"metric":"rl_disconnects"},
- {"metric":"rl_messages_dropped"},
- {"metric":"rl_soft_limit_users"},
- {"metric":"shortcut_pings"},
- {"metric":"socket_connects"},
- {"metric":"socket_disconnects"},
- {"metric":"tokens_issued"},
- {"metric":"tokens_presented"},
- {"metric":"token_ages_millis_500"},
- {"metric":"token_ages_millis_800"},
- {"metric":"token_ages_millis_950"},
- {"metric":"token_ages_millis_990"},
- {"metric":"total_all_channels"},
- {"metric":"total_channels"},
- {"metric":"total_dms"},
- {"metric":"total_groups"},
- {"metric":"total_pending_bytes"},
- {"metric":"total_pending_ops"},
- {"metric":"total_teams"},
- {"metric":"total_users"},
- {"metric":"unretrieved_tokens"},
- {"metric":"user_messages_perc900"},
- {"metric":"user_messages_perc990"},
- {"metric":"user_messages_perc999"},
- {"metric":"user_messages_sent"},
- {"metric":"websocket_errors"}]
+ {"metric":"jvm_vsize_kb", min:0}
+]
 ;
 
 /* global _ */
@@ -565,7 +502,7 @@ function frontPage() {
   		to: "now"
 	};
 
-  dashboard.rows.push(topRow("presence", "Cluster"));
+  dashboard.rows.push(topRow("presence*", "Cluster"));
   dashboard.rows.push(aggregateRow());
 
 var options = [];
