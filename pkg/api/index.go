@@ -76,15 +76,21 @@ func setIndexViewData(c *middleware.Context) (*dtos.IndexViewData, error) {
 	})
 
 	data.MainNavLinks = append(data.MainNavLinks, &dtos.NavLink{
-	    Text: "Hosts",
-	    Icon: "icon-gf icon-gf-bulk_action",
-	    Url:  setting.AppSubUrl + "/hosts",
+		Text: "Hosts",
+		Icon: "icon-gf icon-gf-bulk_action",
+		Url:  setting.AppSubUrl + "/hosts",
 	})
 
 	data.MainNavLinks = append(data.MainNavLinks, &dtos.NavLink{
-	    Text: "Metrics",
-	    Icon: "icon-gf icon-gf-search",
-	    Url: setting.AppSubUrl + "/dashboard/metrics",
+		Text: "Explore",
+		Icon: "icon-gf icon-gf-search",
+		Url:  setting.AppSubUrl + "/explore",
+	})
+
+	data.MainNavLinks = append(data.MainNavLinks, &dtos.NavLink{
+		Text: "AdHoc Graph",
+		Icon: "icon-gf icon-gf-panel",
+		Url:  setting.AppSubUrl + "/dashboard/metrics",
 	})
 
 	if c.OrgRole == m.ROLE_ADMIN {

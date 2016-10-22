@@ -59,6 +59,8 @@ func Register(r *macaron.Macaron) {
 	r.Get("/playlists/", reqSignedIn, Index)
 	r.Get("/playlists/*", reqSignedIn, Index)
 
+	r.Get("/explore/", reqSignedIn, Index)
+
 	// sign up
 	r.Get("/signup", Index)
 	r.Get("/api/user/signup/options", wrap(GetSignUpOptions))
@@ -235,6 +237,9 @@ func Register(r *macaron.Macaron) {
 
 		// metrics
 		r.Get("/metrics/test", GetTestMetrics)
+
+		// metrics exploration
+		r.Get("/metrics/explore", wrap(ExploreMetrics))
 
 	}, reqSignedIn)
 

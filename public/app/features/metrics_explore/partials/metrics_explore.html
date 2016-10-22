@@ -1,0 +1,41 @@
+<navbar icon="icon-gf icon-gf-search" title="Metrics Exploration" title-url="explore">
+</navbar>
+
+<div class="page-container" ng-controller="MetricsExploreCtrl">
+        <div class="page-header">
+            <h1>Metrics Exploration</h1>
+        </div>
+        <h3 class="page-heading">Search:</h3>
+        <span>Examples:</span>
+        <ul style="padding-left: 20px">
+          <li>Simple String: bot_messages_received</li>
+          <li>Simple Regex: messageserver.*_connections</li>
+          <li>Regular Regex: (push|email)_notifications\.success\.count$</li>
+        </ul>
+        <br />
+        <div class="alert alert-info">
+          Please Note: Some prefix elements (region, cluster, hostname) have been collapsed to make it easier
+          for you to find what you're looking for! So you will not be able to search for "us-east-1a.*", for
+          example.
+        </div>
+        <br />
+        <form name="metricsExploreForm" class="gf-form-group">
+            <div class="gf-form-inline">
+                <div class="gf-form gf-size-max-xxxl">
+                    <span class="gf-form-label gf-size-s">Regex Query:</span>
+                    <input class="gf-form-input" type="text" required ng-model='query'>
+                </div>
+                <div class="gf-form">
+                    <button type="submit" class="btn gf-form-btn btn-success" ng-click="update()">Search</button>
+                </div>
+            </div>
+        </form>
+
+        <div ng-if="showResults" class="tight-form-list">
+          <span class="page-heading">Results:</span><br />
+          <em ng-if="searching">Searching... <i class="fa fa-spinner fa-spin"></i></em>
+          <ul ng-if="!searching">
+            <li ng-repeat="item in result" class="grafana-list-item" ng-bind-html="item"></li>
+          </ul>
+        </div>
+</div>
